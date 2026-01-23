@@ -274,6 +274,12 @@ describe('extended syntax', () => {
 
 			const file = await processor.process(`hello, ==markdown==`)
 			expect(file.value).toEqual('<p>hello, <mark>markdown</mark></p>')
+
+			const filefail = await processor.process(`hello, =\\==markdown==`)
+			expect(filefail.value).toEqual('<p>hello, ===markdown==</p>')
+
+			const filefail2 = await processor.process(`hello, ==\\=markdown==`)
+			expect(filefail2.value).toEqual('<p>hello, <mark>=markdown</mark></p>')
 		})
 
 		it('should return subscript', async () => {
@@ -332,8 +338,8 @@ describe('svelte syntax', () => {
 		it('should return div with multiple line', async () => {
 			const processor = initProcessor()
 
-			const file = await processor.process('<div>\nhello, markdown\n\nhello, remark\n</div>')
-			expect(file.value).toEqual('<div>\nhello, markdown\n\nhello, remark\n</div>')
+			const file = await processor.process('<div>\nhello, markdown\n\n# hello, remark\n\n</div>')
+			expect(file.value).toEqual('<div>\nhello, markdown\n\n# hello, remark\n\n</div>')
 		})
 
 		it('should return div with multiple line in attributes', async () => {
@@ -343,7 +349,7 @@ describe('svelte syntax', () => {
 			expect(file.value).toEqual('<div\nclass="bg-primary"\n>hello, markdown</div>')
 		})
 
-		it('should return script', async () => {
+		it('should return raw', async () => {
 			const processor = initProcessor()
 
 			const file = await processor.process('<script lang="ts" module>\nlet count = $state(0);\n</script>')
@@ -355,6 +361,34 @@ describe('svelte syntax', () => {
 
 			const file = await processor.process('<!-- \nhello, world\n -->')
 			expect(file.value).toEqual('<!-- \nhello, world\n -->')
+		})
+
+		it('should return instrcutions', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('<?php \n?\n?\n ?>')
+			expect(file.value).toEqual('<?php \n?\n?\n ?>')
+		})
+
+		it('should return cdata', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('<!DOCUMENT test>')
+			expect(file.value).toEqual('<!DOCUMENT test>')
+		})
+
+		it('should return cdata', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('<![CDATA[ \n]\n]]\n ]]>')
+			expect(file.value).toEqual('<![CDATA[ \n]\n]]\n ]]>')
+		})
+
+		it('inline html', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('# hello <img src={src} />')
+			expect(file.value).toEqual('<h1>hello <img src={src} /></h1>')
 		})
 	})
 
@@ -371,6 +405,62 @@ describe('svelte syntax', () => {
 
 			const file = await processor.process('<img {src} alt="{name} dances." />')
 			expect(file.value).toEqual('<img {src} alt="{name} dances." />')
+		})
+
+		it('should return inline image shorthand src', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('# title <img {src} alt="{name} dances." />')
+			expect(file.value).toEqual('<h1>title <img {src} alt="{name} dances." /></h1>')
+		})
+
+		it('should return html tag', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('{@html variable}')
+			expect(file.value).toEqual('{@html variable}')
+		})
+
+		it('should return inline html tag', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('hello {@html variable} markdown')
+			expect(file.value).toEqual('<p>hello {@html variable} markdown</p>')
+		})
+
+		it('should return inline html tag in two line', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('hello {@html \nvariable} markdown')
+			expect(file.value).toEqual('<p>hello {@html \nvariable} markdown</p>')
+		})
+
+		it('should return inline html tag and multiple line', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('hello {@html \n\nvariable} markdown')
+			expect(file.value).toEqual('<p>hello {@html </p>\n<p>variable} markdown</p>')
+		})
+
+		it('should return if block', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('{#if data}')
+			expect(file.value).toEqual('{#if data}')
+		})
+
+		it('should return if block with multiple line', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('{#if \n\n\ndata \n\n\n}')
+			expect(file.value).toEqual('{#if \n\n\ndata \n\n\n}')
+		})
+
+		it('should return paragraph and variable', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('{variable}')
+			expect(file.value).toEqual('<p>{variable}</p>')
 		})
 	})
 })

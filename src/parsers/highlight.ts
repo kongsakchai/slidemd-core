@@ -6,7 +6,7 @@ import type { Code, Effects, Event, Extension, State, Token, TokenizeContext } f
 export const highligh = (): Extension => {
 	const tokenizer = {
 		name: 'highlight',
-		tokenize: tokenHighlight,
+		tokenize: tokenizerHighlight,
 		resolveAll: resolveAllHighlight
 	}
 
@@ -16,7 +16,7 @@ export const highligh = (): Extension => {
 		attentionMarkers: { null: [codes.equalsTo] }
 	}
 
-	function tokenHighlight(this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
+	function tokenizerHighlight(this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
 		let size = 0
 
 		return start

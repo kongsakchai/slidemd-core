@@ -34,7 +34,7 @@ const declarationExpression = /^<![A-Z][\s\S]*>$/
 
 // Type 5: CDATA <![CDATA[...]]>
 const cdataPrefix = '<![CDATA['
-const cdataExpression = /^<!\[CDATA\[[\s\s]*\]\]>$/
+const cdataExpression = /^<!\[CDATA\[[\s\S]*\]\]>$/
 
 // Type 6: Standard block tags
 const tagNameExpression = /^<([a-zA-Z][a-zA-Z0-9\-:/.]*)/
@@ -47,31 +47,16 @@ const isAlphabet = (char: number) => {
 	)
 }
 
-const shouldEnd = (buf: string, type: BlockType): boolean => {
-	switch (type) {
-		case BlockType.Raw:
-			return rawTagExpression.test(buf)
-		case BlockType.Comment:
-			return commentExpression.test(buf)
-		case BlockType.Instruction:
-			return instructionExpression.test(buf)
-		case BlockType.Declaration:
-			return declarationExpression.test(buf)
-		case BlockType.CData:
-			return cdataExpression.test(buf)
-		case BlockType.Tags:
-			return openCloseTagExpression.test(buf)
-		case BlockType.Complete:
-			return completeTagExpression.test(buf)
-	}
-
-	return false
-}
-
 export const htmlBlock = (): Extension => {
 	const tokenizerHTML = {
 		name: 'html',
-		tokenize: tokenHTML,
+		tokenize: tokenizerHTMLBlock,
+		concrete: true
+	}
+
+	const tokenizerLogic = {
+		name: 'html',
+		tokenize: tokenizerLogicBlock,
 		concrete: true
 	}
 
@@ -80,15 +65,19 @@ export const htmlBlock = (): Extension => {
 			null: ['htmlFlow', 'htmlFlowData']
 		},
 		flow: {
-			[codes.lessThan]: tokenizerHTML
-			// [codes.leftCurlyBrace]: tokenizer
+			[codes.lessThan]: tokenizerHTML,
+			[codes.leftCurlyBrace]: tokenizerLogic
+		},
+		text: {
+			[codes.lessThan]: tokenizerHTML,
+			[codes.leftCurlyBrace]: tokenizerLogic
 		}
 	}
 
-	function tokenHTML(this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
+	function tokenizerHTMLBlock(this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
 		let buf = ''
 		let type = 0
-		let complete = false
+		let previousSlash = false
 		return start
 
 		function consume(code: Code) {
@@ -120,7 +109,7 @@ export const htmlBlock = (): Extension => {
 				return more
 			}
 
-			// 1 & 6
+			// 1 & 6 & 7
 			if (code !== null && isAlphabet(code)) {
 				consume(code)
 				return more
@@ -193,14 +182,9 @@ export const htmlBlock = (): Extension => {
 		function closeTag(code: Code) {
 			if (code === codes.greaterThan) {
 				consume(code)
-				if (shouldEnd(buf, type)) {
-					return done
-				} else {
-					complete = false
-					return more
-				}
+				if (shouldEnd()) return done
+				return more
 			}
-			complete = false
 			return more(code)
 		}
 
@@ -208,7 +192,7 @@ export const htmlBlock = (): Extension => {
 			const regex = buf.match(tagNameExpression)
 			if (!regex || regex?.length < 2) nok(code)
 
-			if (complete) {
+			if (previousSlash) {
 				type = BlockType.Complete
 				return more(code)
 			}
@@ -223,10 +207,14 @@ export const htmlBlock = (): Extension => {
 		}
 
 		function more(code: Code): State | undefined {
-			if (!complete) complete = code == codes.slash
-
 			if (code === codes.eof) {
 				return nok(code)
+			}
+
+			if (code === codes.slash) {
+				previousSlash = true
+				consume(code)
+				return more
 			}
 
 			if (code === codes.lineFeed) {
@@ -264,11 +252,118 @@ export const htmlBlock = (): Extension => {
 				return closeTag(code)
 			}
 
+			previousSlash = false
 			consume(code)
 			return more
 		}
 
+		function shouldEnd(): boolean {
+			switch (type) {
+				case BlockType.Raw:
+					return rawTagExpression.test(buf)
+				case BlockType.Comment:
+					return commentExpression.test(buf)
+				case BlockType.Instruction:
+					return instructionExpression.test(buf)
+				case BlockType.Declaration:
+					return declarationExpression.test(buf)
+				case BlockType.CData:
+					return cdataExpression.test(buf)
+				case BlockType.Tags:
+					return openCloseTagExpression.test(buf)
+				case BlockType.Complete:
+					return completeTagExpression.test(buf)
+			}
+
+			return false
+		}
+
 		function done(code: Code): State | undefined {
+			effects.exit(types.htmlFlowData)
+			effects.exit(types.htmlFlow)
+
+			return ok(code)
+		}
+	}
+
+	function tokenizerLogicBlock(this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
+		let openScrope = 0
+		let openString: Code = 0
+		let previousBackslash = false
+
+		return start
+
+		function start(code: Code): State | undefined {
+			if (code !== codes.leftCurlyBrace) return nok(code)
+
+			effects.enter(types.htmlFlow)
+			effects.enter(types.htmlFlowData)
+			effects.consume(code)
+			openScrope == 1
+
+			return open
+		}
+
+		function open(code: Code) {
+			switch (code) {
+				case codes.numberSign:
+				case codes.atSign:
+				case codes.colon:
+				case codes.slash:
+					return more(code)
+			}
+
+			return nok(code)
+		}
+
+		function more(code: Code) {
+			if (code === codes.eof) {
+				return done(code)
+			}
+
+			if (code === codes.lineFeed) {
+				effects.enter(types.lineEnding)
+				effects.consume(code)
+				effects.exit(types.lineEnding)
+				effects.exit(types.htmlFlowData)
+				effects.enter(types.htmlFlowData)
+				return more
+			}
+
+			if (!previousBackslash && code === codes.backslash) {
+				previousBackslash = true
+				effects.consume(code)
+				return more
+			}
+
+			if (!previousBackslash) {
+				switch (code) {
+					case codes.quotationMark:
+					case codes.graveAccent:
+					case codes.apostrophe:
+						if (openString === null) {
+							openString = code
+						}
+						break
+					case openString:
+						openString = null
+					case codes.leftCurlyBrace:
+						if (openString === null) openScrope++
+						break
+					case codes.rightCurlyBrace:
+						if (openScrope == 1 && openString === null) openScrope--
+						break
+				}
+			}
+
+			previousBackslash = false
+			effects.consume(code)
+			return more
+		}
+
+		function done(code: Code): State | undefined {
+			if (openScrope != 0) return nok(code)
+
 			effects.exit(types.htmlFlowData)
 			effects.exit(types.htmlFlow)
 

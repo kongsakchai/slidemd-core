@@ -6,7 +6,7 @@ import type { Code, Effects, Event, Extension, State, Token, TokenizeContext } f
 export const subscript = (): Extension => {
 	const tokenizer = {
 		name: 'subscript',
-		tokenize: tokenSubscript,
+		tokenize: tokenizerSubscript,
 		resolveAll: resolveAllSubscript
 	}
 
@@ -16,7 +16,7 @@ export const subscript = (): Extension => {
 		attentionMarkers: { null: [codes.tilde] }
 	}
 
-	function tokenSubscript(this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
+	function tokenizerSubscript(this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
 		const previous = this.previous
 		const events = this.events
 		let size = 0
@@ -130,7 +130,7 @@ export const subscriptFromMarkdown = (): FromMarkdownExtension => {
 export const superscript = (): Extension => {
 	const tokenizer = {
 		name: 'superscript',
-		tokenize: tokenSuperscript,
+		tokenize: tokenizerSuperscript,
 		resolveAll: resolveAllSuperscript
 	}
 
@@ -140,7 +140,7 @@ export const superscript = (): Extension => {
 		attentionMarkers: { null: [codes.caret] }
 	}
 
-	function tokenSuperscript(this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
+	function tokenizerSuperscript(this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
 		const previous = this.previous
 		const events = this.events
 		let size = 0
