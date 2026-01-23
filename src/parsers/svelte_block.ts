@@ -1,9 +1,10 @@
 import { codes, types } from 'micromark-util-symbol'
 import type { Code, Effects, Extension, State, TokenizeContext } from 'micromark-util-types'
 
-enum blockType {
+enum BlockType {
+	Unknow = 0,
 	// Type 1: <script> <pre> <style>
-	Raw = 1,
+	Raw,
 	// Type 2: Comment
 	Comment,
 	// Type 3: Processing instructions <?...?>
@@ -13,12 +14,32 @@ enum blockType {
 	// Type 5: CDATA <![CDATA[...]]>
 	CData,
 	// Type 6: block tags
-	Tags
+	Tags,
+	// Type 7: complete tags <.../>
+	Complete
 }
 
+// Type 1: <script>, <pre>, <style>, <textarea>
+const rawTagNames = ['pre', 'script', 'style', 'textarea']
+const rawTagExpression = /^<(pre|script|style|textarea)(?:\s[\s\S]*)?>[\s\S]*<\/\1>$/i
+
+// Type 2: HTML comments <!--...-->
+const commentExpression = /^<!--[\s\S]*-->$/
+
+// Type 3: Processing instructions <?...?>
+const instructionExpression = /^<\?[\s\S]*\?>/
+
+// Type 4: Declarations <!...>
+const declarationExpression = /^<![A-Z][\s\S]*>$/
+
+// Type 5: CDATA <![CDATA[...]]>
 const cdataPrefix = '<![CDATA['
-const completeTagExpression = /^<([a-zA-Z][a-zA-Z0-9\-:/.]*)(?:\s[\s\S]*)?\/>/
-const openCloseTagExpression = /^<([a-zA-Z][a-zA-Z0-9\-:/.]*)(?:\s[\s\S]*)?>[\s\S]*<\/\1>/
+const cdataExpression = /^<!\[CDATA\[[\s\s]*\]\]>$/
+
+// Type 6: Standard block tags
+const tagNameExpression = /^<([a-zA-Z][a-zA-Z0-9\-:/.]*)/
+const completeTagExpression = /^<([a-zA-Z][a-zA-Z0-9\-:/.]*)(?:\s[\s\S]*)?\/>$/
+const openCloseTagExpression = /^<([a-zA-Z][a-zA-Z0-9\-:/.]*)(?:\s[\s\S]*)?>[\s\S]*<\/\1>$/
 
 const isAlphabet = (char: number) => {
 	return (
@@ -26,8 +47,25 @@ const isAlphabet = (char: number) => {
 	)
 }
 
-const validateTag = (code: string) => {
-	return completeTagExpression.test(code) || openCloseTagExpression.test(code)
+const shouldEnd = (buf: string, type: BlockType): boolean => {
+	switch (type) {
+		case BlockType.Raw:
+			return rawTagExpression.test(buf)
+		case BlockType.Comment:
+			return commentExpression.test(buf)
+		case BlockType.Instruction:
+			return instructionExpression.test(buf)
+		case BlockType.Declaration:
+			return declarationExpression.test(buf)
+		case BlockType.CData:
+			return cdataExpression.test(buf)
+		case BlockType.Tags:
+			return openCloseTagExpression.test(buf)
+		case BlockType.Complete:
+			return completeTagExpression.test(buf)
+	}
+
+	return false
 }
 
 export const htmlBlock = (): Extension => {
@@ -50,6 +88,7 @@ export const htmlBlock = (): Extension => {
 	function tokenHTML(this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
 		let buf = ''
 		let type = 0
+		let complete = false
 		return start
 
 		function consume(code: Code) {
@@ -76,7 +115,7 @@ export const htmlBlock = (): Extension => {
 
 			// 3
 			if (code === codes.questionMark) {
-				type = blockType.Instruction
+				type = BlockType.Instruction
 				consume(code)
 				return more
 			}
@@ -92,17 +131,17 @@ export const htmlBlock = (): Extension => {
 
 		function openWithExclamationMark(code: Code) {
 			if (code === codes.dash) {
-				type = blockType.Comment
+				type = BlockType.Comment
 				consume(code)
 				return openComment
 			}
 			if (code === codes.leftSquareBracket) {
-				type = blockType.CData
+				type = BlockType.CData
 				consume(code)
 				return openCData
 			}
 			if (code != null && isAlphabet(code)) {
-				type = blockType.Declaration
+				type = BlockType.Declaration
 				consume(code)
 				return more
 			}
@@ -122,10 +161,10 @@ export const htmlBlock = (): Extension => {
 		function closeComment(code: Code) {
 			if (code === codes.dash) {
 				consume(code)
-				return beforeClose
+				return closeTag
 			}
 
-			return nok(code)
+			return more(code)
 		}
 
 		function openCData(code: Code) {
@@ -145,59 +184,84 @@ export const htmlBlock = (): Extension => {
 		function closeCData(code: Code) {
 			if (code === codes.rightSquareBracket) {
 				consume(code)
-				return beforeClose
-			}
-
-			return nok(code)
-		}
-
-		function beforeClose(code: Code) {
-			if (code === codes.greaterThan) {
-				consume(code)
-				return done
+				return closeTag
 			}
 
 			return more(code)
 		}
 
+		function closeTag(code: Code) {
+			if (code === codes.greaterThan) {
+				consume(code)
+				if (shouldEnd(buf, type)) {
+					return done
+				} else {
+					complete = false
+					return more
+				}
+			}
+			complete = false
+			return more(code)
+		}
+
+		function tagName(code: Code) {
+			const regex = buf.match(tagNameExpression)
+			if (!regex || regex?.length < 2) nok(code)
+
+			if (complete) {
+				type = BlockType.Complete
+				return more(code)
+			}
+
+			if (rawTagNames.includes(regex?.[1] || '')) {
+				type = BlockType.Raw
+				return more(code)
+			}
+
+			type = BlockType.Tags
+			return more(code)
+		}
+
 		function more(code: Code): State | undefined {
+			if (!complete) complete = code == codes.slash
+
 			if (code === codes.eof) {
-				return done(code)
+				return nok(code)
 			}
 
 			if (code === codes.lineFeed) {
-				effects.exit(types.htmlFlowData)
 				effects.enter(types.lineEnding)
 				consume(code)
 				effects.exit(types.lineEnding)
+				effects.exit(types.htmlFlowData)
 				effects.enter(types.htmlFlowData)
 				return more
 			}
 
-			if (code === codes.dash && type === blockType.Comment) {
+			if (code === codes.dash && type === BlockType.Comment) {
 				consume(code)
 				return closeComment
 			}
 
-			if (code === codes.questionMark && type === blockType.Instruction) {
+			if (code === codes.questionMark && type === BlockType.Instruction) {
 				consume(code)
-				return beforeClose
+				return closeTag
 			}
 
-			if (code === codes.greaterThan && type === blockType.Declaration) {
-				consume(code)
-				return beforeClose
+			if (code === codes.greaterThan && type === BlockType.Declaration) {
+				return closeTag(code)
 			}
 
-			if (code === codes.rightSquareBracket && type === blockType.CData) {
+			if (code === codes.rightSquareBracket && type === BlockType.CData) {
 				consume(code)
 				return closeCData
 			}
 
 			if (code === codes.greaterThan) {
-				consume(code)
-				if (validateTag(buf)) return done
-				return more
+				if (type === BlockType.Unknow) {
+					return tagName(code)
+				}
+				return closeTag(code)
 			}
 
 			consume(code)
@@ -205,8 +269,6 @@ export const htmlBlock = (): Extension => {
 		}
 
 		function done(code: Code): State | undefined {
-			if (!validateTag(buf)) return nok(code)
-
 			effects.exit(types.htmlFlowData)
 			effects.exit(types.htmlFlow)
 

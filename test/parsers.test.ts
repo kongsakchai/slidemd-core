@@ -272,7 +272,7 @@ describe('extended syntax', () => {
 		it('should return highlight', async () => {
 			const processor = initProcessor()
 
-			const file = await processor.process('hello, ==markdown==')
+			const file = await processor.process(`hello, ==markdown==`)
 			expect(file.value).toEqual('<p>hello, <mark>markdown</mark></p>')
 		})
 
@@ -350,12 +350,12 @@ describe('svelte syntax', () => {
 			expect(file.value).toEqual('<script lang="ts" module>\nlet count = $state(0);\n</script>')
 		})
 
-		// it('should return html comment', async () => {
-		// 	const processor = initProcessor()
+		it('should return html comment', async () => {
+			const processor = initProcessor()
 
-		// 	const file = await processor.process('<!-- \nhello, world\n -->')
-		// 	expect(file.value).toEqual('<!-- \nhello, world\n -->')
-		// })
+			const file = await processor.process('<!-- \nhello, world\n -->')
+			expect(file.value).toEqual('<!-- \nhello, world\n -->')
+		})
 	})
 
 	describe('basic svelte', () => {
