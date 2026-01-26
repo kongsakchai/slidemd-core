@@ -439,7 +439,7 @@ describe('svelte syntax', () => {
 			const processor = initProcessor()
 
 			const file = await processor.process('hello {@html \n\nvariable} markdown')
-			expect(file.value).toEqual('<p>hello {@html </p>\n<p>variable} markdown</p>')
+			expect(file.value).toEqual('<p>hello {@html</p>\n<p>variable} markdown</p>')
 		})
 
 		it('should return if block', async () => {

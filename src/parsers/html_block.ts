@@ -48,326 +48,235 @@ const isAlphabet = (char: number) => {
 }
 
 export const htmlBlock = (): Extension => {
-	const tokenizerHTML = {
+	const createTokenizerHTML = (inline?: boolean) => ({
 		name: 'html',
-		tokenize: tokenizerHTMLBlock,
+		tokenize: createTokenizerHTMLBlock(inline),
 		concrete: true
-	}
-
-	const tokenizerLogic = {
-		name: 'html',
-		tokenize: tokenizerLogicBlock,
-		concrete: true
-	}
+	})
 
 	return {
 		disable: {
 			null: ['htmlFlow', 'htmlFlowData']
 		},
 		flow: {
-			[codes.lessThan]: tokenizerHTML,
-			[codes.leftCurlyBrace]: tokenizerLogic
+			[codes.lessThan]: createTokenizerHTML()
 		},
 		text: {
-			[codes.lessThan]: tokenizerHTML,
-			[codes.leftCurlyBrace]: tokenizerLogic
+			[codes.lessThan]: createTokenizerHTML(true)
 		}
 	}
 
-	function tokenizerHTMLBlock(this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
-		let buf = ''
-		let type = 0
-		let previousSlash = false
-		return start
+	function createTokenizerHTMLBlock(inline?: boolean) {
+		return function (this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
+			let buf = ''
+			let type = 0
+			let previousSlash = false
+			return start
 
-		function consume(code: Code) {
-			effects.consume(code)
-			if (code !== codes.eof) buf += code < 0 ? ' ' : String.fromCharCode(code)
-		}
-
-		function start(code: Code): State | undefined {
-			if (code !== codes.lessThan) return nok(code)
-
-			effects.enter(types.htmlFlow)
-			effects.enter(types.htmlFlowData)
-			consume(code)
-
-			return open
-		}
-
-		function open(code: Code): State | undefined {
-			// 2, 4 & 5
-			if (code === codes.exclamationMark) {
-				consume(code)
-				return openWithExclamationMark
+			function consume(code: Code) {
+				effects.consume(code)
+				if (code !== codes.eof) buf += code < 0 ? ' ' : String.fromCharCode(code)
 			}
 
-			// 3
-			if (code === codes.questionMark) {
-				type = BlockType.Instruction
+			function start(code: Code): State | undefined {
+				if (code !== codes.lessThan) return nok(code)
+
+				effects.enter(types.htmlFlow)
+				effects.enter(types.htmlFlowData)
 				consume(code)
-				return more
+
+				return open
 			}
 
-			// 1 & 6 & 7
-			if (code !== null && isAlphabet(code)) {
-				consume(code)
-				return more
-			}
+			function open(code: Code): State | undefined {
+				// 2, 4 & 5
+				if (code === codes.exclamationMark) {
+					consume(code)
+					return openWithExclamationMark
+				}
 
-			return nok(code)
-		}
-
-		function openWithExclamationMark(code: Code) {
-			if (code === codes.dash) {
-				type = BlockType.Comment
-				consume(code)
-				return openComment
-			}
-			if (code === codes.leftSquareBracket) {
-				type = BlockType.CData
-				consume(code)
-				return openCData
-			}
-			if (code != null && isAlphabet(code)) {
-				type = BlockType.Declaration
-				consume(code)
-				return more
-			}
-
-			return nok(code)
-		}
-
-		function openComment(code: Code) {
-			if (code === codes.dash) {
-				consume(code)
-				return more
-			}
-
-			return nok(code)
-		}
-
-		function closeComment(code: Code) {
-			if (code === codes.dash) {
-				consume(code)
-				return closeTag
-			}
-
-			return more(code)
-		}
-
-		function openCData(code: Code) {
-			if (code === codes.eof) return nok(code)
-
-			if (buf.length < cdataPrefix.length) {
-				consume(code)
-				if (buf === cdataPrefix) {
+				// 3
+				if (code === codes.questionMark) {
+					type = BlockType.Instruction
+					consume(code)
 					return more
 				}
 
-				return openCData
-			}
-			return nok(code)
-		}
+				// 1 & 6 & 7
+				if (code !== null && isAlphabet(code)) {
+					consume(code)
+					return more
+				}
 
-		function closeCData(code: Code) {
-			if (code === codes.rightSquareBracket) {
-				consume(code)
-				return closeTag
-			}
-
-			return more(code)
-		}
-
-		function closeTag(code: Code) {
-			if (code === codes.greaterThan) {
-				consume(code)
-				if (shouldEnd()) return done
-				return more
-			}
-			return more(code)
-		}
-
-		function tagName(code: Code) {
-			const regex = buf.match(tagNameExpression)
-			if (!regex || regex?.length < 2) nok(code)
-
-			if (previousSlash) {
-				type = BlockType.Complete
-				return more(code)
-			}
-
-			if (rawTagNames.includes(regex?.[1] || '')) {
-				type = BlockType.Raw
-				return more(code)
-			}
-
-			type = BlockType.Tags
-			return more(code)
-		}
-
-		function more(code: Code): State | undefined {
-			if (code === codes.eof) {
 				return nok(code)
 			}
 
-			if (code === codes.slash) {
-				previousSlash = true
-				consume(code)
-				return more
-			}
-
-			if (code === codes.lineFeed) {
-				effects.enter(types.lineEnding)
-				consume(code)
-				effects.exit(types.lineEnding)
-				effects.exit(types.htmlFlowData)
-				effects.enter(types.htmlFlowData)
-				return more
-			}
-
-			if (code === codes.dash && type === BlockType.Comment) {
-				consume(code)
-				return closeComment
-			}
-
-			if (code === codes.questionMark && type === BlockType.Instruction) {
-				consume(code)
-				return closeTag
-			}
-
-			if (code === codes.greaterThan && type === BlockType.Declaration) {
-				return closeTag(code)
-			}
-
-			if (code === codes.rightSquareBracket && type === BlockType.CData) {
-				consume(code)
-				return closeCData
-			}
-
-			if (code === codes.greaterThan) {
-				if (type === BlockType.Unknow) {
-					return tagName(code)
+			function openWithExclamationMark(code: Code) {
+				if (code === codes.dash) {
+					type = BlockType.Comment
+					consume(code)
+					return openComment
 				}
-				return closeTag(code)
+				if (code === codes.leftSquareBracket) {
+					type = BlockType.CData
+					consume(code)
+					return openCData
+				}
+				if (code != null && isAlphabet(code)) {
+					type = BlockType.Declaration
+					consume(code)
+					return more
+				}
+
+				return nok(code)
 			}
 
-			previousSlash = false
-			consume(code)
-			return more
-		}
+			function openComment(code: Code) {
+				if (code === codes.dash) {
+					consume(code)
+					return more
+				}
 
-		function shouldEnd(): boolean {
-			switch (type) {
-				case BlockType.Raw:
-					return rawTagExpression.test(buf)
-				case BlockType.Comment:
-					return commentExpression.test(buf)
-				case BlockType.Instruction:
-					return instructionExpression.test(buf)
-				case BlockType.Declaration:
-					return declarationExpression.test(buf)
-				case BlockType.CData:
-					return cdataExpression.test(buf)
-				case BlockType.Tags:
-					return openCloseTagExpression.test(buf)
-				case BlockType.Complete:
-					return completeTagExpression.test(buf)
+				return nok(code)
 			}
 
-			return false
-		}
+			function closeComment(code: Code) {
+				if (code === codes.dash) {
+					consume(code)
+					return closeTag
+				}
 
-		function done(code: Code): State | undefined {
-			effects.exit(types.htmlFlowData)
-			effects.exit(types.htmlFlow)
+				return more(code)
+			}
 
-			return ok(code)
-		}
-	}
+			function openCData(code: Code) {
+				if (code === codes.eof) return nok(code)
 
-	function tokenizerLogicBlock(this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
-		let openScrope = 0
-		let openString: Code = 0
-		let previousBackslash = false
+				if (buf.length < cdataPrefix.length) {
+					consume(code)
+					if (buf === cdataPrefix) {
+						return more
+					}
 
-		return start
+					return openCData
+				}
+				return nok(code)
+			}
 
-		function start(code: Code): State | undefined {
-			if (code !== codes.leftCurlyBrace) return nok(code)
+			function closeCData(code: Code) {
+				if (code === codes.rightSquareBracket) {
+					consume(code)
+					return closeTag
+				}
 
-			effects.enter(types.htmlFlow)
-			effects.enter(types.htmlFlowData)
-			effects.consume(code)
-			openScrope == 1
+				return more(code)
+			}
 
-			return open
-		}
+			function closeTag(code: Code) {
+				if (code === codes.greaterThan) {
+					consume(code)
+					if (shouldEnd()) return done
+					return more
+				}
+				return more(code)
+			}
 
-		function open(code: Code) {
-			switch (code) {
-				case codes.numberSign:
-				case codes.atSign:
-				case codes.colon:
-				case codes.slash:
+			function tagName(code: Code) {
+				const regex = buf.match(tagNameExpression)
+				if (!regex || regex?.length < 2) nok(code)
+
+				if (previousSlash) {
+					type = BlockType.Complete
 					return more(code)
-			}
-
-			return nok(code)
-		}
-
-		function more(code: Code) {
-			if (code === codes.eof) {
-				return done(code)
-			}
-
-			if (code === codes.lineFeed) {
-				effects.enter(types.lineEnding)
-				effects.consume(code)
-				effects.exit(types.lineEnding)
-				effects.exit(types.htmlFlowData)
-				effects.enter(types.htmlFlowData)
-				return more
-			}
-
-			if (!previousBackslash && code === codes.backslash) {
-				previousBackslash = true
-				effects.consume(code)
-				return more
-			}
-
-			if (!previousBackslash) {
-				switch (code) {
-					case codes.quotationMark:
-					case codes.graveAccent:
-					case codes.apostrophe:
-						if (openString === null) {
-							openString = code
-						}
-						break
-					case openString:
-						openString = null
-					case codes.leftCurlyBrace:
-						if (openString === null) openScrope++
-						break
-					case codes.rightCurlyBrace:
-						if (openScrope == 1 && openString === null) openScrope--
-						break
 				}
+
+				if (rawTagNames.includes(regex?.[1] || '')) {
+					type = BlockType.Raw
+					return more(code)
+				}
+
+				type = BlockType.Tags
+				return more(code)
 			}
 
-			previousBackslash = false
-			effects.consume(code)
-			return more
-		}
+			function more(code: Code): State | undefined {
+				if (code === codes.eof) {
+					return nok(code)
+				}
 
-		function done(code: Code): State | undefined {
-			if (openScrope != 0) return nok(code)
+				if (code === codes.slash) {
+					previousSlash = true
+					consume(code)
+					return more
+				}
 
-			effects.exit(types.htmlFlowData)
-			effects.exit(types.htmlFlow)
+				if (!inline && code === codes.lineFeed) {
+					effects.enter(types.lineEnding)
+					consume(code)
+					effects.exit(types.lineEnding)
+					effects.exit(types.htmlFlowData)
+					effects.enter(types.htmlFlowData)
+					return more
+				}
 
-			return ok(code)
+				if (code === codes.dash && type === BlockType.Comment) {
+					consume(code)
+					return closeComment
+				}
+
+				if (code === codes.questionMark && type === BlockType.Instruction) {
+					consume(code)
+					return closeTag
+				}
+
+				if (code === codes.greaterThan && type === BlockType.Declaration) {
+					return closeTag(code)
+				}
+
+				if (code === codes.rightSquareBracket && type === BlockType.CData) {
+					consume(code)
+					return closeCData
+				}
+
+				if (code === codes.greaterThan) {
+					if (type === BlockType.Unknow) {
+						return tagName(code)
+					}
+					return closeTag(code)
+				}
+
+				previousSlash = false
+				consume(code)
+				return more
+			}
+
+			function shouldEnd(): boolean {
+				switch (type) {
+					case BlockType.Raw:
+						return rawTagExpression.test(buf)
+					case BlockType.Comment:
+						return commentExpression.test(buf)
+					case BlockType.Instruction:
+						return instructionExpression.test(buf)
+					case BlockType.Declaration:
+						return declarationExpression.test(buf)
+					case BlockType.CData:
+						return cdataExpression.test(buf)
+					case BlockType.Tags:
+						return openCloseTagExpression.test(buf)
+					case BlockType.Complete:
+						return completeTagExpression.test(buf)
+				}
+
+				return false
+			}
+
+			function done(code: Code): State | undefined {
+				effects.exit(types.htmlFlowData)
+				effects.exit(types.htmlFlow)
+
+				return ok(code)
+			}
 		}
 	}
 }
