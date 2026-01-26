@@ -1,5 +1,5 @@
 import { codes, types } from 'micromark-util-symbol'
-import type { Code, Effects, Extension, State, TokenizeContext } from 'micromark-util-types'
+import type { Code, Construct, Effects, Extension, State, TokenizeContext } from 'micromark-util-types'
 
 enum BlockType {
 	Unknow = 0,
@@ -48,16 +48,13 @@ const isAlphabet = (char: number) => {
 }
 
 export const htmlBlock = (): Extension => {
-	const createTokenizerHTML = (inline?: boolean) => ({
+	const createTokenizerHTML = (inline?: boolean): Construct => ({
 		name: 'html',
 		tokenize: createTokenizerHTMLBlock(inline),
 		concrete: true
 	})
 
 	return {
-		disable: {
-			null: ['htmlFlow', 'htmlFlowData']
-		},
 		flow: {
 			[codes.lessThan]: createTokenizerHTML()
 		},

@@ -456,11 +456,25 @@ describe('svelte syntax', () => {
 			expect(file.value).toEqual('{#if \n\n\ndata \n\n\n}')
 		})
 
+		it('should return if block with header', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('{#if data}\n# header1\n## header2\n### header3\n{/if}')
+			expect(file.value).toEqual('{#if data}\n<h1>header1</h1>\n<h2>header2</h2>\n<h3>header3</h3>\n{/if}')
+		})
+
 		it('should return paragraph and variable', async () => {
 			const processor = initProcessor()
 
-			const file = await processor.process('{variable}')
+			const file = await processor.process('{{variable}}')
 			expect(file.value).toEqual('<p>{variable}</p>')
+		})
+
+		it('should return paragraph and variable', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('Age is: {{variable >= 0 ? "OLD":"YOUNG"}}')
+			expect(file.value).toEqual('<p>Age is: {variable >= 0 ? "OLD":"YOUNG"}</p>')
 		})
 	})
 })

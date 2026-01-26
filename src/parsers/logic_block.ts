@@ -1,35 +1,25 @@
+import { RootContent, Text } from 'mdast'
+import type { CompileContext, Extension as FromMarkdownExtension } from 'mdast-util-from-markdown'
 import { codes, types } from 'micromark-util-symbol'
-import type { Code, Effects, Extension, State, TokenizeContext } from 'micromark-util-types'
+import type {
+	Code,
+	Construct,
+	Effects,
+	Extension,
+	State,
+	Token,
+	TokenizeContext,
+	TokenType
+} from 'micromark-util-types'
 
-enum BlockType {
-	Unknow = 0,
-	// Type 1: <script> <pre> <style>
-	Raw,
-	// Type 2: Comment
-	Comment,
-	// Type 3: Processing instructions <?...?>
-	Instruction,
-	// Type 4: Declarations <!...>
-	Declaration,
-	// Type 5: CDATA <![CDATA[...]]>
-	CData,
-	// Type 6: block tags
-	Tags,
-	// Type 7: complete tags <.../>
-	Complete
-}
-
-export const logicBlock = (): Extension => {
-	const createTokenizerLogic = (inline?: boolean) => ({
+export const svelteLogicBlock = (): Extension => {
+	const createTokenizerLogic = (inline?: boolean): Construct => ({
 		name: 'html',
 		tokenize: createTokenizerLogicBlock(inline),
 		concrete: true
 	})
 
 	return {
-		disable: {
-			null: ['htmlFlow', 'htmlFlowData']
-		},
 		flow: {
 			[codes.leftCurlyBrace]: createTokenizerLogic()
 		},
@@ -43,6 +33,8 @@ export const logicBlock = (): Extension => {
 			let openScrope = 0
 			let openString: Code = 0
 			let previousBackslash = false
+			let dataToken: Token
+			let dataType: TokenType = types.htmlFlowData
 
 			return start
 
@@ -50,7 +42,7 @@ export const logicBlock = (): Extension => {
 				if (code !== codes.leftCurlyBrace) return nok(code)
 
 				effects.enter(types.htmlFlow)
-				effects.enter(types.htmlFlowData)
+				dataToken = effects.enter(dataType)
 				effects.consume(code)
 				openScrope = 1
 
@@ -59,10 +51,14 @@ export const logicBlock = (): Extension => {
 
 			function open(code: Code) {
 				switch (code) {
-					case codes.numberSign:
-					case codes.atSign:
-					case codes.colon:
-					case codes.slash:
+					case codes.leftCurlyBrace:
+						if (!inline) break
+						dataType = 'inlineCode'
+						dataToken.type = 'inlineCode'
+					case codes.numberSign: // #if, #each, #key, #await, #snippet
+					case codes.atSign: // @render, @html, @const, @debug
+					case codes.colon: // :else, :then, :catch, :final
+					case codes.slash: // /if, /each, /await, /key, /snippet
 						return more(code)
 				}
 
@@ -78,8 +74,8 @@ export const logicBlock = (): Extension => {
 					effects.enter(types.lineEnding)
 					effects.consume(code)
 					effects.exit(types.lineEnding)
-					effects.exit(types.htmlFlowData)
-					effects.enter(types.htmlFlowData)
+					effects.exit(dataType)
+					effects.enter(dataType)
 					return more
 				}
 
@@ -100,6 +96,7 @@ export const logicBlock = (): Extension => {
 							break
 						case openString:
 							openString = null
+							break
 						case codes.leftCurlyBrace:
 							if (openString !== null) openScrope++
 							break
@@ -117,11 +114,35 @@ export const logicBlock = (): Extension => {
 			}
 
 			function done(code: Code): State | undefined {
-				effects.exit(types.htmlFlowData)
+				effects.exit(dataType)
 				effects.exit(types.htmlFlow)
-
 				return ok(code)
 			}
+		}
+	}
+}
+
+export const inlineCodeFromMarkdown = (): FromMarkdownExtension => {
+	return {
+		canContainEols: ['inlineCode'],
+		enter: { inlineCode: enterToken },
+		exit: { inlineCode: exitToken }
+	}
+
+	function enterToken(this: CompileContext, token: Token) {
+		const node = this.stack[this.stack.length - 1]
+		if ('children' in node) {
+			const children = node.children as RootContent[]
+			const text = { type: 'text', value: '', position: token } as Text
+			children.push(text)
+		}
+	}
+
+	function exitToken(this: CompileContext, token: Token) {
+		const node = this.stack[this.stack.length - 1]
+		if ('children' in node) {
+			const text = node.children[0] as Text
+			text.value = this.sliceSerialize(token).slice(1, -1)
 		}
 	}
 }

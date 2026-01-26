@@ -12,6 +12,7 @@ declare module 'micromark-util-types' {
 		superscriptSequenceTemp: {}
 		superscriptSequence: {}
 		superscript: {}
+		inlineCode: {}
 	}
 }
 
