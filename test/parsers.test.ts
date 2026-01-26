@@ -272,14 +272,28 @@ describe('extended syntax', () => {
 		it('should return highlight', async () => {
 			const processor = initProcessor()
 
-			const file = await processor.process(`hello, ==markdown==`)
+			let file = await processor.process(`hello, ==markdown==`)
 			expect(file.value).toEqual('<p>hello, <mark>markdown</mark></p>')
 
-			const filefail = await processor.process(`hello, =\\==markdown==`)
-			expect(filefail.value).toEqual('<p>hello, ===markdown==</p>')
+			file = await processor.process(`hello, ===markdown===`)
+			expect(file.value).toEqual('<p>hello, =<mark>markdown=</mark></p>')
+		})
 
-			const filefail2 = await processor.process(`hello, ==\\=markdown==`)
-			expect(filefail2.value).toEqual('<p>hello, <mark>=markdown</mark></p>')
+		it('should return highlight with other syntax', async () => {
+			const processor = initProcessor()
+
+			let file = await processor.process(`hello, ==*markdown*==`)
+			expect(file.value).toEqual('<p>hello, <mark><em>markdown</em></mark></p>')
+		})
+
+		it('should return normal text when escape highligh', async () => {
+			const processor = initProcessor()
+
+			let file = await processor.process(`hello, =\\==markdown===`)
+			expect(file.value).toEqual('<p>hello, ===markdown===</p>')
+
+			file = await processor.process(`hello, ==\\=markdown==`)
+			expect(file.value).toEqual('<p>hello, <mark>=markdown</mark></p>')
 		})
 
 		it('should return subscript', async () => {
@@ -359,8 +373,17 @@ describe('svelte syntax', () => {
 		it('should return html comment', async () => {
 			const processor = initProcessor()
 
-			const file = await processor.process('<!-- \nhello, world\n -->')
+			let file = await processor.process('<!-- \nhello, world\n -->')
 			expect(file.value).toEqual('<!-- \nhello, world\n -->')
+
+			file = await processor.process('<! -- -->')
+			expect(file.value).toEqual('<p>&#x3C;! -- --></p>')
+
+			file = await processor.process('<!- -->')
+			expect(file.value).toEqual('<p>&#x3C;!- --></p>')
+
+			file = await processor.process('<!-- ->')
+			expect(file.value).toEqual('<!-- ->')
 		})
 
 		it('should return instrcutions', async () => {
@@ -380,8 +403,11 @@ describe('svelte syntax', () => {
 		it('should return cdata', async () => {
 			const processor = initProcessor()
 
-			const file = await processor.process('<![CDATA[ \n]\n]]\n ]]>')
+			let file = await processor.process('<![CDATA[ \n]\n]]\n ]]>')
 			expect(file.value).toEqual('<![CDATA[ \n]\n]]\n ]]>')
+
+			file = await processor.process('<![CDAT[ \n]\n]]\n ]]>')
+			expect(file.value).toEqual('<p>&#x3C;![CDAT[\n]\n]]\n]]></p>')
 		})
 
 		it('inline html', async () => {
@@ -389,6 +415,13 @@ describe('svelte syntax', () => {
 
 			const file = await processor.process('# hello <img src={src} />')
 			expect(file.value).toEqual('<h1>hello <img src={src} /></h1>')
+		})
+
+		it('should return invalid html', async () => {
+			const processor = initProcessor()
+
+			let file = await processor.process('<@div>hello, markdown</@div>')
+			expect(file.value).toEqual('<p>&#x3C;@div>hello, markdown<a href="mailto:/@div">/@div</a></p>')
 		})
 	})
 
