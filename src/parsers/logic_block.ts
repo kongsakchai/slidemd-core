@@ -12,6 +12,8 @@ import type {
 	TokenType
 } from 'micromark-util-types'
 
+let openStringScropeCodes: Code[] = [codes.quotationMark, codes.graveAccent, codes.apostrophe]
+
 export const svelteLogicBlock = (): Extension => {
 	const createTokenizerLogic = (inline?: boolean): Construct => ({
 		name: 'html',
@@ -30,11 +32,12 @@ export const svelteLogicBlock = (): Extension => {
 
 	function createTokenizerLogicBlock(inline?: boolean) {
 		return function (this: TokenizeContext, effects: Effects, ok: State, nok: State): State {
-			let openScrope = 0
-			let openString: Code = 0
+			let scrope = 0
+			let stringScrope: Code = null
 			let previousBackslash = false
-			let dataToken: Token
-			let dataType: TokenType = types.htmlFlowData
+
+			let enteredToken: Token
+			let dataFlowType: TokenType = types.htmlFlowData
 
 			return start
 
@@ -42,9 +45,9 @@ export const svelteLogicBlock = (): Extension => {
 				if (code !== codes.leftCurlyBrace) return nok(code)
 
 				effects.enter(types.htmlFlow)
-				dataToken = effects.enter(dataType)
+				enteredToken = effects.enter(dataFlowType)
 				effects.consume(code)
-				openScrope = 1
+				scrope = 1
 
 				return open
 			}
@@ -53,8 +56,8 @@ export const svelteLogicBlock = (): Extension => {
 				switch (code) {
 					case codes.leftCurlyBrace:
 						if (!inline) break
-						dataType = 'inlineCode'
-						dataToken.type = 'inlineCode'
+						dataFlowType = 'inlineCode'
+						enteredToken.type = 'inlineCode'
 					case codes.numberSign: // #if, #each, #key, #await, #snippet
 					case codes.atSign: // @render, @html, @const, @debug
 					case codes.colon: // :else, :then, :catch, :final
@@ -74,34 +77,28 @@ export const svelteLogicBlock = (): Extension => {
 					effects.enter(types.lineEnding)
 					effects.consume(code)
 					effects.exit(types.lineEnding)
-					effects.exit(dataType)
-					effects.enter(dataType)
-					return more
-				}
-
-				if (!previousBackslash && code === codes.backslash) {
-					previousBackslash = true
-					effects.consume(code)
+					effects.exit(dataFlowType)
+					effects.enter(dataFlowType)
 					return more
 				}
 
 				if (!previousBackslash) {
+					if (code === codes.backslash) {
+						previousBackslash = true
+						effects.consume(code)
+						return more
+					}
+
+					if (openStringScropeCodes.includes(code)) {
+						openString(code)
+					}
+
 					switch (code) {
-						case codes.quotationMark:
-						case codes.graveAccent:
-						case codes.apostrophe:
-							if (openString === null) {
-								openString = code
-							}
-							break
-						case openString:
-							openString = null
-							break
 						case codes.leftCurlyBrace:
-							if (openString !== null) openScrope++
+							if (stringScrope === null) scrope++
 							break
 						case codes.rightCurlyBrace:
-							if (openString !== null) openScrope--
+							if (stringScrope === null) scrope--
 							break
 					}
 				}
@@ -109,14 +106,21 @@ export const svelteLogicBlock = (): Extension => {
 				previousBackslash = false
 				effects.consume(code)
 
-				if (openScrope === 0) return done
+				if (scrope === 0) {
+					effects.exit(dataFlowType)
+					effects.exit(types.htmlFlow)
+					return ok
+				}
+
 				return more
 			}
 
-			function done(code: Code): State | undefined {
-				effects.exit(dataType)
-				effects.exit(types.htmlFlow)
-				return ok(code)
+			function openString(code: Code) {
+				if (stringScrope === null) {
+					stringScrope = code
+				} else if (stringScrope !== null && stringScrope === code) {
+					stringScrope = null
+				}
 			}
 		}
 	}
@@ -125,8 +129,7 @@ export const svelteLogicBlock = (): Extension => {
 export const inlineCodeFromMarkdown = (): FromMarkdownExtension => {
 	return {
 		canContainEols: ['inlineCode'],
-		enter: { inlineCode: enterToken },
-		exit: { inlineCode: exitToken }
+		enter: { inlineCode: enterToken }
 	}
 
 	function enterToken(this: CompileContext, token: Token) {
@@ -134,15 +137,8 @@ export const inlineCodeFromMarkdown = (): FromMarkdownExtension => {
 		if ('children' in node) {
 			const children = node.children as RootContent[]
 			const text = { type: 'text', value: '', position: token } as Text
-			children.push(text)
-		}
-	}
-
-	function exitToken(this: CompileContext, token: Token) {
-		const node = this.stack[this.stack.length - 1]
-		if ('children' in node) {
-			const text = node.children[0] as Text
 			text.value = this.sliceSerialize(token).slice(1, -1)
+			children.push(text)
 		}
 	}
 }

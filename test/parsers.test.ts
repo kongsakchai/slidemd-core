@@ -503,11 +503,11 @@ describe('svelte syntax', () => {
 			expect(file.value).toEqual('<p>{variable}</p>')
 		})
 
-		it('should return paragraph and variable', async () => {
+		it('should return paragraph and ternary', async () => {
 			const processor = initProcessor()
 
-			const file = await processor.process('Age is: {{variable >= 0 ? "OLD":"YOUNG"}}')
-			expect(file.value).toEqual('<p>Age is: {variable >= 0 ? "OLD":"YOUNG"}</p>')
+			const file = await processor.process('Age is: {{variable >= 0 ? "\\"OLD\\"":"YOUNG"}}')
+			expect(file.value).toEqual('<p>Age is: {variable >= 0 ? "\\"OLD\\"":"YOUNG"}</p>')
 		})
 	})
 })

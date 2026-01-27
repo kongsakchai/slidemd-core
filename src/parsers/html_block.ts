@@ -172,7 +172,9 @@ export const htmlBlock = (): Extension => {
 			function closeTag(code: Code) {
 				if (code === codes.greaterThan) {
 					consume(code)
-					if (shouldEnd()) return done
+					if (shouldEnd(type, buf)) {
+						return done
+					}
 					return more
 				}
 				return more(code)
@@ -247,33 +249,32 @@ export const htmlBlock = (): Extension => {
 				return more
 			}
 
-			function shouldEnd(): boolean {
-				switch (type) {
-					case BlockType.Raw:
-						return rawTagExpression.test(buf)
-					case BlockType.Comment:
-						return commentExpression.test(buf)
-					case BlockType.Instruction:
-						return instructionExpression.test(buf)
-					case BlockType.Declaration:
-						return declarationExpression.test(buf)
-					case BlockType.CData:
-						return cdataExpression.test(buf)
-					case BlockType.Tags:
-						return openCloseTagExpression.test(buf)
-					case BlockType.Complete:
-						return completeTagExpression.test(buf)
-				}
-
-				return false
-			}
-
 			function done(code: Code): State | undefined {
 				effects.exit(types.htmlFlowData)
 				effects.exit(types.htmlFlow)
-
 				return ok(code)
 			}
 		}
 	}
+}
+
+function shouldEnd(type: BlockType, buf: string): boolean {
+	switch (type) {
+		case BlockType.Raw:
+			return rawTagExpression.test(buf)
+		case BlockType.Comment:
+			return commentExpression.test(buf)
+		case BlockType.Instruction:
+			return instructionExpression.test(buf)
+		case BlockType.Declaration:
+			return declarationExpression.test(buf)
+		case BlockType.CData:
+			return cdataExpression.test(buf)
+		case BlockType.Tags:
+			return openCloseTagExpression.test(buf)
+		case BlockType.Complete:
+			return completeTagExpression.test(buf)
+	}
+
+	return false
 }
