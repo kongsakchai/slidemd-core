@@ -509,5 +509,12 @@ describe('svelte syntax', () => {
 			const file = await processor.process('Age is: {{variable >= 0 ? "\\"OLD\\"":"YOUNG"}}')
 			expect(file.value).toEqual('<p>Age is: {variable >= 0 ? "\\"OLD\\"":"YOUNG"}</p>')
 		})
+
+		it('should return logic with multiple line', async () => {
+			const processor = initProcessor()
+
+			const file = await processor.process('Age is: {{variable >= 0 \n?\n "\\"OLD\\""\n:"YOUNG"}}')
+			expect(file.value).toEqual('<p>Age is: {variable >= 0 ? "\\"OLD\\"":"YOUNG"}</p>')
+		})
 	})
 })
