@@ -1,18 +1,21 @@
 <script lang="ts">
 	import { SlideController, SlideLayout } from '@lib/components'
-	import { PageState } from '@lib/utils'
+	import SlideZoom from '@lib/components/slide-zoom.svelte'
+	import { SlideState } from '@lib/utils'
 
 	import Slide, { slide } from './example/marp.md'
 
-	const state = new PageState(slide)
+	const slideState = new SlideState(slide)
 </script>
 
 <main class="h-full w-full">
 	<SlideLayout>
-		<Slide bind:page={state.page} bind:step={state.step} />
+		<SlideZoom {slideState}>
+			<Slide bind:page={slideState.page} bind:step={slideState.step} />
+		</SlideZoom>
 
-		{#snippet controller()}
-			<SlideController {state} />
+		{#snippet overlay()}
+			<SlideController {slideState} />
 		{/snippet}
 	</SlideLayout>
 </main>

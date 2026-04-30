@@ -4,11 +4,11 @@
 	import type { Snippet } from 'svelte'
 
 	interface Props {
-		controller?: Snippet
+		overlay?: Snippet
 		children: Snippet
 	}
 
-	let { children, controller }: Props = $props()
+	let { children, overlay }: Props = $props()
 
 	let width = $state(0)
 	let height = $state(0)
@@ -16,12 +16,14 @@
 </script>
 
 <section
+	id="slide-stage"
 	class="relative h-full w-full content-center overflow-hidden bg-black"
 	bind:clientWidth={width}
 	bind:clientHeight={height}
 >
 	<section
-		class="absolute top-1/2 left-1/2 flex"
+		id="slide-container"
+		class="absolute top-1/2 left-1/2 flex overflow-hidden"
 		style:width="{slideWidth}px"
 		style:height="{slideHeight}px"
 		style:translate="-50% -50%"
@@ -30,5 +32,5 @@
 		{@render children()}
 	</section>
 
-	{@render controller?.()}
+	{@render overlay?.()}
 </section>

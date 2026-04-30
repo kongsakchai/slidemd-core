@@ -1,4 +1,12 @@
 <script lang="ts">
+	import { SlideState } from '@lib/utils'
+
+	interface Props {
+		slideState: SlideState
+	}
+
+	let { slideState }: Props = $props()
+
 	let fullscreen = $state(!!document.fullscreenElement)
 
 	function onFullscreen() {
@@ -13,7 +21,7 @@
 </script>
 
 <div class="menu">
-	<button onclick={onFullscreen} title="fullscreen" class="menu-btn h-9 w-9 rounded-l-sm">
+	<button onclick={onFullscreen} title="fullscreen" class="menu-btn rounded-l-sm">
 		{#if fullscreen}
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -57,7 +65,7 @@
 		{/if}
 	</button>
 	<div class=" border-border border-l"></div>
-	<button title="next-btn" class="menu-btn zoom-btn h-9 w-9 rounded-r-sm">
+	<button title="next-btn" class="menu-btn zoom-btn rounded-r-sm">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="20"
@@ -77,8 +85,11 @@
 		</svg>
 	</button>
 
-	<div class="text-card-foreground zoom-panel bg-card border-border h-10 border p-1">
-		<input type="range" />
+	<div
+		class="text-card-foreground zoom-panel bg-card border-border flex items-center gap-2 rounded-md border p-2 px-4"
+	>
+		<input type="range" class="w-40" min="1" max="3" step="0.01" bind:value={slideState.scale} />
+		<p class="m-0 w-10 text-right text-sm">{Math.round(slideState.scale * 100)}%</p>
 	</div>
 </div>
 
@@ -94,22 +105,6 @@
 		position: fixed;
 		position-anchor: --zoom-btn;
 		position-area: top center;
-		bottom: 10px;
-	}
-
-	input[type='range'] {
-		@apply bg-input h-4 appearance-none overflow-hidden rounded-full;
-
-		&::-webkit-slider-thumb {
-			@apply bg-card ring-primary relative h-3 w-3 appearance-none rounded-full ring;
-		}
-
-		&::-moz-range-track {
-			@apply bg-card ring-primary relative h-3 w-3 appearance-none rounded-full ring;
-		}
-
-		&::-webkit-slider-runnable-track {
-			@apply appearance-none;
-		}
+		bottom: 24px;
 	}
 </style>

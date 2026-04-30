@@ -1,23 +1,23 @@
 <script lang="ts">
-	import { PageAction, PageState } from '@lib/utils'
+	import { PageAction, SlideState } from '@lib/utils'
 
 	interface Props {
-		state: PageState
+		slideState: SlideState
 	}
 
-	let { state }: Props = $props()
+	let { slideState }: Props = $props()
 
 	function nextPage() {
-		state.update(PageAction.NEXT)
+		slideState.update(PageAction.NEXT)
 	}
 
 	function previousPage() {
-		state.update(PageAction.PREVIOUS)
+		slideState.update(PageAction.PREVIOUS)
 	}
 </script>
 
 <div class="menu">
-	<button onclick={previousPage} title="previous button" class="menu-btn h-9 w-9 rounded-l-sm">
+	<button onclick={previousPage} title="previous button" class="menu-btn rounded-l-sm">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="22"
@@ -35,10 +35,12 @@
 	</button>
 	<div class=" border-border border-l"></div>
 	<button>
-		<p class="m-0 w-22 px-2 text-center font-medium tabular-nums">{state.page} / {state.maxPage}</p>
+		<p class="text-card-foreground m-0 min-w-21 px-2 text-center text-sm font-medium tabular-nums">
+			{slideState.page} / {slideState.maxPage}
+		</p>
 	</button>
 	<div class=" border-border border-l"></div>
-	<button onclick={nextPage} title="next button" class="menu-btn h-9 w-9 rounded-r-sm">
+	<button onclick={nextPage} title="next button" class="menu-btn rounded-r-sm">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="22"
