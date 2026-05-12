@@ -10,7 +10,7 @@ export class SlideState {
 	#page = $state(1)
 	#step = $state(0)
 	#maxPage = $derived(this.#slide?.pages.length || 0)
-	scale = $state(1)
+	#scale = $state(1)
 
 	constructor(data: SlideData) {
 		this.#slide = data
@@ -30,6 +30,14 @@ export class SlideState {
 
 	get maxStep() {
 		return this.#slide.pages[this.#page - 1].step
+	}
+
+	get scale() {
+		return this.#scale
+	}
+
+	set scale(value: number) {
+		this.#scale = value
 	}
 
 	update(action: PageAction) {

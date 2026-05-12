@@ -20,7 +20,7 @@
 
 	let zoomEl: HTMLElement
 
-	let enableZoom = $derived(slideState.scale != 1)
+	let zoomActive = $derived(slideState.scale != 1)
 
 	let zoom = $state<ZoomState>({
 		isDragging: false,
@@ -41,11 +41,19 @@
 		}
 	})
 
+	let translateX = $derived(clamp(zoom.panX, -layoutLimit.x, layoutLimit.x))
+	let translateY = $derived(clamp(zoom.panY, -layoutLimit.y, layoutLimit.y))
+
 	$effect(() => {
-		if (!enableZoom) {
+		if (!zoomActive) {
 			zoom.panX = 0
 			zoom.panY = 0
 		}
+	})
+
+	$effect(() => {
+		zoomEl.addEventListener('wheel', onWheel, { passive: false })
+		return () => zoomEl.removeEventListener('wheel', onWheel)
 	})
 
 	function clamp(val: number, min: number, max: number) {
@@ -53,7 +61,7 @@
 	}
 
 	function onPointerdown(e: PointerEvent) {
-		zoom.isDragging = enableZoom
+		zoom.isDragging = zoomActive
 		zoom.startX = e.clientX - zoom.panX
 		zoom.startY = e.clientY - zoom.panY
 	}
@@ -69,8 +77,16 @@
 		zoom.isDragging = false
 	}
 
-	let translateX = $derived(clamp(zoom.panX, -layoutLimit.x, layoutLimit.x))
-	let translateY = $derived(clamp(zoom.panY, -layoutLimit.y, layoutLimit.y))
+	function onWheel(e: WheelEvent) {
+		e.preventDefault()
+
+		if (e.ctrlKey) {
+			slideState.scale = Math.min(Math.max(slideState.scale - e.deltaY / 100, 1), 3)
+		} else if (zoomActive) {
+			zoom.panX = clamp(zoom.panX - e.deltaX, -layoutLimit.x, layoutLimit.x)
+			zoom.panY = clamp(zoom.panY - e.deltaY, -layoutLimit.y, layoutLimit.y)
+		}
+	}
 </script>
 
 <section

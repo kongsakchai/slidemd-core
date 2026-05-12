@@ -9,6 +9,8 @@
 
 	let fullscreen = $state(!!document.fullscreenElement)
 
+	let zoomToggle = $state(false)
+
 	function onFullscreen() {
 		if (!document.fullscreenElement) {
 			fullscreen = true
@@ -65,7 +67,7 @@
 		{/if}
 	</button>
 	<div class=" border-border border-l"></div>
-	<button title="next-btn" class="menu-btn zoom-btn rounded-r-sm">
+	<button title="zoom" class="menu-btn zoom-btn rounded-r-sm" onclick={() => (zoomToggle = !zoomToggle)}>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="20"
@@ -86,6 +88,7 @@
 	</button>
 
 	<div
+		hidden={!zoomToggle}
 		class="text-card-foreground zoom-panel bg-card border-border flex items-center gap-2 rounded-md border p-2 px-4"
 	>
 		<input type="range" class="w-40" min="1" max="3" step="0.01" bind:value={slideState.scale} />
