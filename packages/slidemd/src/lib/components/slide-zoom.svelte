@@ -1,81 +1,88 @@
 <script lang="ts">
 	import { SlideState } from '@lib/utils'
 
-	import type { Snippet } from 'svelte'
+	import { type Snippet } from 'svelte'
 
 	interface Props {
 		slideState: SlideState
 		children: Snippet
 	}
 
+	interface ZoomState {
+		isDragging: boolean
+		startX: number
+		startY: number
+		panY: number
+		panX: number
+	}
+
 	let { slideState, children }: Props = $props()
+
+	let zoomEl: HTMLElement
 
 	let enableZoom = $derived(slideState.scale != 1)
 
-	let isDragging = $state(false)
-	let startX = $state(0)
-	let startY = $state(0)
-	let translateX = $state(0)
-	let translateY = $state(0)
-	let containerW = $state(0)
-	let containerH = $state(0)
+	let zoom = $state<ZoomState>({
+		isDragging: false,
+		startX: 0,
+		startY: 0,
+		panX: 0,
+		panY: 0
+	})
 
-	$effect(() => {
-		if (!enableZoom) {
-			translateX = 0
-			translateY = 0
+	let scale = $derived.by(() => {
+		return slideState.scale
+	})
+
+	let layoutLimit = $derived.by(() => {
+		return {
+			x: ((zoomEl?.clientWidth || 0) * (scale - 1)) / 2,
+			y: ((zoomEl?.clientHeight || 0) * (scale - 1)) / 2
 		}
 	})
 
-	function clampTranslate(val: number, width: number, scale: number) {
-		const minMax = (width * (scale - 1)) / 2
-		console.log({ val, width, scale, minMax })
-		return Math.min(-minMax, Math.max(minMax, val))
+	$effect(() => {
+		if (!enableZoom) {
+			zoom.panX = 0
+			zoom.panY = 0
+		}
+	})
+
+	function clamp(val: number, min: number, max: number) {
+		return Math.max(min, Math.min(max, val))
 	}
 
-	function onPointerdown(
-		e: MouseEvent & {
-			currentTarget: EventTarget & HTMLDivElement
-		}
-	) {
-		isDragging = true
-		startX = e.clientX - translateX
-		startY = e.clientY - translateY
+	function onPointerdown(e: PointerEvent) {
+		zoom.isDragging = enableZoom
+		zoom.startX = e.clientX - zoom.panX
+		zoom.startY = e.clientY - zoom.panY
 	}
 
-	function onPointermove(
-		e: MouseEvent & {
-			currentTarget: EventTarget & HTMLDivElement
-		}
-	) {
-		if (!isDragging) return
-		translateX = e.clientX - startX
-		translateY = e.clientY - startY
+	function onPointermove(e: PointerEvent) {
+		if (!zoom.isDragging) return
+
+		zoom.panX = clamp(e.clientX - zoom.startX, -layoutLimit.x, layoutLimit.x)
+		zoom.panY = clamp(e.clientY - zoom.startY, -layoutLimit.y, layoutLimit.y)
 	}
 
 	function onPointerup() {
-		isDragging = false
+		zoom.isDragging = false
 	}
+
+	let translateX = $derived(clamp(zoom.panX, -layoutLimit.x, layoutLimit.x))
+	let translateY = $derived(clamp(zoom.panY, -layoutLimit.y, layoutLimit.y))
 </script>
 
-<!-- {#if enableZoom} -->
-<div
+<section
+	bind:this={zoomEl}
 	id="zoom-contrainer"
 	role="presentation"
-	class="h-full w-full"
-	bind:clientWidth={containerW}
-	bind:clientHeight={containerH}
+	class="flex h-full w-full select-none"
+	style:scale={slideState.scale}
+	style:translate="{translateX}px {translateY}px"
 	onpointerdown={onPointerdown}
 	onpointermove={onPointermove}
 	onpointerup={onPointerup}
 >
-	<section
-		id="zoom-content"
-		class="flex h-full w-full select-none"
-		style:scale={slideState.scale}
-		style:translate="{translateX}px {translateY}px"
-		draggable="false"
-	>
-		{@render children()}
-	</section>
-</div>
+	{@render children()}
+</section>

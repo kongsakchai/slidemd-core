@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { SlideController, SlideLayout } from '@lib/components'
 	import SlideZoom from '@lib/components/slide-zoom.svelte'
-	import { SlideState } from '@lib/utils'
+	import { SlideState, slideHeight, slideWidth } from '@lib/utils'
 
 	import Slide, { slide } from './example/marp.md'
 
@@ -9,7 +9,7 @@
 </script>
 
 <main class="h-full w-full">
-	<SlideLayout>
+	<SlideLayout width={slideWidth} height={slideHeight}>
 		<SlideZoom {slideState}>
 			<Slide bind:page={slideState.page} bind:step={slideState.step} />
 		</SlideZoom>

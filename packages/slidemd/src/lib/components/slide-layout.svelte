@@ -1,31 +1,33 @@
 <script lang="ts">
-	import { resolvePageSize, slideHeight, slideWidth } from '@lib/utils'
+	import { resolvePageSize } from '@lib/utils'
 
 	import type { Snippet } from 'svelte'
 
 	interface Props {
+		width: number
+		height: number
 		overlay?: Snippet
 		children: Snippet
 	}
 
-	let { children, overlay }: Props = $props()
+	let { width, height, children, overlay }: Props = $props()
 
-	let width = $state(0)
-	let height = $state(0)
-	let slideSize = $derived(resolvePageSize(slideWidth, slideHeight, width, height))
+	let layoutWidth = $state(0)
+	let layoutHeight = $state(0)
+	let slideSize = $derived(resolvePageSize(width, height, layoutWidth, layoutHeight))
 </script>
 
 <section
-	id="slide-stage"
+	id="slide-layout"
 	class="relative h-full w-full content-center overflow-hidden bg-black"
-	bind:clientWidth={width}
-	bind:clientHeight={height}
+	bind:clientWidth={layoutWidth}
+	bind:clientHeight={layoutHeight}
 >
 	<section
 		id="slide-container"
 		class="absolute top-1/2 left-1/2 flex overflow-hidden"
-		style:width="{slideWidth}px"
-		style:height="{slideHeight}px"
+		style:width="{width}px"
+		style:height="{height}px"
 		style:translate="-50% -50%"
 		style:scale={slideSize}
 	>
