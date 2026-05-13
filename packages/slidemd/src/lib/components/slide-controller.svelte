@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { SlideState } from '@lib/utils'
 
-	import Navigator from './navigator.svelte'
-	import Viewer from './viewer.svelte'
+	import Appearance from './controller/appearance.svelte'
+	import Navigator from './controller/navigator.svelte'
+	import Tools from './controller/tools.svelte'
 
 	interface Props {
 		slideState: SlideState
@@ -13,7 +14,8 @@
 
 <div class="controller absolute bottom-10 left-10 flex gap-4">
 	<Navigator {slideState} />
-	<Viewer {slideState} />
+	<Tools {slideState} />
+	<Appearance />
 </div>
 
 <style lang="postcss">

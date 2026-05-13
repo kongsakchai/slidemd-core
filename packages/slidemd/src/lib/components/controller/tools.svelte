@@ -67,7 +67,7 @@
 		{/if}
 	</button>
 	<div class=" border-border border-l"></div>
-	<button title="zoom" class="menu-btn zoom-btn rounded-r-sm" onclick={() => (zoomToggle = !zoomToggle)}>
+	<button title="zoom" popovertarget="zoom-panel" class="menu-btn zoom-btn rounded-r-sm">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			width="20"
@@ -88,8 +88,9 @@
 	</button>
 
 	<div
-		hidden={!zoomToggle}
-		class="text-card-foreground zoom-panel bg-card border-border flex items-center gap-2 rounded-md border p-2 px-4"
+		popover
+		id="zoom-panel"
+		class="text-card-foreground zoom-panel bg-card border-border rounded-md border p-2 px-4"
 	>
 		<input type="range" class="w-40" min="1" max="3" step="0.01" bind:value={slideState.scale} />
 		<p class="m-0 w-10 text-right text-sm">{Math.round(slideState.scale * 100)}%</p>
@@ -97,9 +98,6 @@
 </div>
 
 <style lang="postcss">
-	@reference "tailwindcss";
-	@reference "@lib/themes/slidemd.css";
-
 	.zoom-btn {
 		anchor-name: --zoom-btn;
 	}
@@ -109,5 +107,15 @@
 		position-anchor: --zoom-btn;
 		position-area: top center;
 		bottom: 24px;
+
+		&[popover] {
+			display: none;
+		}
+
+		&[popover]:popover-open {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
 	}
 </style>
