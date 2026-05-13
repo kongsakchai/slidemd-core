@@ -9,8 +9,6 @@
 
 	let fullscreen = $state(!!document.fullscreenElement)
 
-	let zoomToggle = $state(false)
-
 	function onFullscreen() {
 		if (!document.fullscreenElement) {
 			fullscreen = true
@@ -92,8 +90,8 @@
 		id="zoom-panel"
 		class="text-card-foreground zoom-panel bg-card border-border rounded-md border p-2 px-4"
 	>
-		<input type="range" class="w-40" min="1" max="3" step="0.01" bind:value={slideState.scale} />
-		<p class="m-0 w-10 text-right text-sm">{Math.round(slideState.scale * 100)}%</p>
+		<input type="range" class="w-40" min="1" max="3" step="0.01" bind:value={slideState.zoom} />
+		<span class="w-10 text-right text-sm">{Math.round(slideState.zoom * 100)}%</span>
 	</div>
 </div>
 

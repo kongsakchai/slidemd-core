@@ -15,7 +15,7 @@
 <div class="controller absolute bottom-10 left-10 flex gap-4">
 	<Navigator {slideState} />
 	<Tools {slideState} />
-	<Appearance />
+	<Appearance {slideState} />
 </div>
 
 <style lang="postcss">

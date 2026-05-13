@@ -20,7 +20,7 @@
 
 	let zoomEl: HTMLElement
 
-	let zoomActive = $derived(slideState.scale != 1)
+	let zoomActive = $derived(slideState.zoom != 1)
 
 	let zoom = $state<ZoomState>({
 		isDragging: false,
@@ -30,9 +30,7 @@
 		panY: 0
 	})
 
-	let scale = $derived.by(() => {
-		return slideState.scale
-	})
+	let scale = $derived(slideState.zoom)
 
 	let layoutLimit = $derived.by(() => {
 		return {
@@ -81,7 +79,7 @@
 		e.preventDefault()
 
 		if (e.ctrlKey) {
-			slideState.scale = Math.min(Math.max(slideState.scale - e.deltaY / 100, 1), 3)
+			slideState.zoom = Math.min(Math.max(slideState.zoom - e.deltaY / 100, 1), 3)
 		} else if (zoomActive) {
 			zoom.panX = clamp(zoom.panX - e.deltaX, -layoutLimit.x, layoutLimit.x)
 			zoom.panY = clamp(zoom.panY - e.deltaY, -layoutLimit.y, layoutLimit.y)
@@ -94,7 +92,7 @@
 	id="zoom-contrainer"
 	role="presentation"
 	class="flex h-full w-full select-none"
-	style:scale={slideState.scale}
+	style:scale
 	style:translate="{translateX}px {translateY}px"
 	onpointerdown={onPointerdown}
 	onpointermove={onPointermove}

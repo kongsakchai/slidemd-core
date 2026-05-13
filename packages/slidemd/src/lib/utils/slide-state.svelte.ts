@@ -10,7 +10,10 @@ export class SlideState {
 	#page = $state(1)
 	#step = $state(0)
 	#maxPage = $derived(this.#slide?.pages.length || 0)
-	#scale = $state(1)
+
+	zoom = $state(1)
+	fontSize = $state(16)
+	scale = $state(1)
 
 	constructor(data: SlideData) {
 		this.#slide = data
@@ -32,14 +35,6 @@ export class SlideState {
 		return this.#slide.pages[this.#page - 1].step
 	}
 
-	get scale() {
-		return this.#scale
-	}
-
-	set scale(value: number) {
-		this.#scale = value
-	}
-
 	update(action: PageAction) {
 		switch (action) {
 			case PageAction.NEXT:
@@ -59,5 +54,17 @@ export class SlideState {
 				}
 				return
 		}
+	}
+
+	resetZoom() {
+		this.zoom = 1
+	}
+
+	resetFontSize() {
+		this.fontSize = 16
+	}
+
+	resetScale() {
+		this.scale = 1
 	}
 }

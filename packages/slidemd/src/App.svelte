@@ -16,7 +16,7 @@
 </script>
 
 <main class="h-full w-full">
-	<SlideLayout width={slideWidth} height={slideHeight}>
+	<SlideLayout {slideState} width={slideWidth} height={slideHeight}>
 		<SlideZoom {slideState}>
 			<Slide bind:page={slideState.page} bind:step={slideState.step} />
 		</SlideZoom>

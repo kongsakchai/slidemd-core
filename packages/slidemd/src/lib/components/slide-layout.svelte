@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { resolvePageSize } from '@lib/utils'
+	import { SlideState, resolvePageSize } from '@lib/utils'
 
 	import type { Snippet } from 'svelte'
 
@@ -8,9 +8,10 @@
 		height: number
 		overlay?: Snippet
 		children: Snippet
+		slideState: SlideState
 	}
 
-	let { width, height, children, overlay }: Props = $props()
+	let { width, height, children, overlay, slideState }: Props = $props()
 
 	let layoutWidth = $state(0)
 	let layoutHeight = $state(0)
@@ -26,10 +27,12 @@
 	<section
 		id="slide-container"
 		class="absolute top-1/2 left-1/2 flex overflow-hidden"
+		class:rounded-xl={slideState.scale < 1}
+		style:font-size={slideState.fontSize + 'px'}
 		style:width="{width}px"
 		style:height="{height}px"
 		style:translate="-50% -50%"
-		style:scale={slideSize}
+		style:scale={slideSize * slideState.scale}
 	>
 		{@render children()}
 	</section>
