@@ -35,6 +35,8 @@ export class SlideState {
 		return this.#slide.pages[this.#page - 1].step
 	}
 
+	initial() {}
+
 	update(action: PageAction) {
 		switch (action) {
 			case PageAction.NEXT:

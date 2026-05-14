@@ -28,15 +28,15 @@
 
 	--code-background: oklch(0.9782 0.0034 247.86);
 	--code-foreground: oklch(0.6878 0.1797 1.96);
-	--code-highlight: color-mix(in oklch, #3c3c43 10%, white);
-	--code-error: color-mix(in oklch, #d20f39 15%, white);
-	--code-error-foreground: #d20f39;
-	--code-warning: color-mix(in oklch, #df8e1d 15%, white);
-	--code-warning-foreground: #df8e1d;
-	--code-add: color-mix(in oklch, #40a02b 15%, white);
-	--code-add-foreground: #40a02b;
-	--code-del: color-mix(in oklch, #d20f39 15%, white);
-	--code-del-foreground: #d20f39;
+	--code-highlight: oklch(0.129 0.042 264.695 / 10%);
+	--code-error: oklch(0.5505 0.2155 19.81 / 14%);
+	--code-error-foreground: oklch(0.5505 0.2155 19.81);
+	--code-warning: oklch(0.714 0.1494 67.78 / 14%);
+	--code-warning-foreground: oklch(0.714 0.1494 67.78);
+	--code-add: oklch(0.625 0.1772 140.44 / 14%);
+	--code-add-foreground: oklch(0.625 0.1772 140.44);
+	--code-del: oklch(0.5505 0.2155 19.81 / 14%);
+	--code-del-foreground: oklch(0.5505 0.2155 19.81);
 }
 
 .dark {
@@ -59,15 +59,15 @@
 
 	--code-background: oklch(0.279 0.041 260.03);
 	--code-foreground: oklch(0.6878 0.1797 1.96);
-	--code-highlight: color-mix(in oklch, white 10%, #0f172a);
-	--code-error: color-mix(in oklch, #d20f39 15%, #0f172a);
-	--code-error-foreground: #d20f39;
-	--code-warning: color-mix(in oklch, #df8e1d 15%, #0f172a);
-	--code-warning-foreground: #df8e1d;
-	--code-add: color-mix(in oklch, #40a02b 15%, #0f172a);
-	--code-add-foreground: #40a02b;
-	--code-del: color-mix(in oklch, #d20f39 15%, #0f172a);
-	--code-del-foreground: #d20f39;
+	--code-highlight: oklch(1 0 0 / 10%);
+	--code-error: oklch(0.5505 0.2155 19.81 / 14%);
+	--code-error-foreground: oklch(0.5505 0.2155 19.81);
+	--code-warning: oklch(0.714 0.1494 67.78 / 14%);
+	--code-warning-foreground: oklch(0.714 0.1494 67.78);
+	--code-add: oklch(0.625 0.1772 140.44 / 14%);
+	--code-add-foreground: oklch(0.625 0.1772 140.44);
+	--code-del: oklch(0.5505 0.2155 19.81 / 14%);
+	--code-del-foreground: oklch(0.5505 0.2155 19.81);
 }
 
 @theme inline {

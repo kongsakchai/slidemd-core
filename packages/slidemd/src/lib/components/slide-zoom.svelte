@@ -30,12 +30,10 @@
 		panY: 0
 	})
 
-	let scale = $derived(slideState.zoom)
-
 	let layoutLimit = $derived.by(() => {
 		return {
-			x: ((zoomEl?.clientWidth || 0) * (scale - 1)) / 2,
-			y: ((zoomEl?.clientHeight || 0) * (scale - 1)) / 2
+			x: ((zoomEl?.clientWidth || 0) * (slideState.zoom - 1)) / 2,
+			y: ((zoomEl?.clientHeight || 0) * (slideState.zoom - 1)) / 2
 		}
 	})
 
@@ -91,8 +89,9 @@
 	bind:this={zoomEl}
 	id="zoom-contrainer"
 	role="presentation"
-	class="flex h-full w-full select-none"
-	style:scale
+	class="flex h-full w-full"
+	class:select-none={zoomActive}
+	style:scale={slideState.zoom}
 	style:translate="{translateX}px {translateY}px"
 	onpointerdown={onPointerdown}
 	onpointermove={onPointermove}
