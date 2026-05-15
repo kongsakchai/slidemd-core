@@ -7,7 +7,7 @@ import {
 
 import type { Element, ElementContent } from 'hast'
 import type { Parent, Root, RootContent } from 'mdast'
-import { createHighlighter } from 'shiki'
+import { SpecialLanguage, createHighlighter } from 'shiki'
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
 import type { Transformer } from 'unified'
 import { visit } from 'unist-util-visit'
@@ -43,7 +43,7 @@ const escapeSpecialCharacters = (str: string) => {
 	return str.replace(/[&<>{}]/g, (char) => `{'${char}'}`)
 }
 
-function createContainer(lang: string, attrs: Record<string, any>, options?: CodeblockOptions) {
+function createContainer(lang: string, attrs: Record<string, string>, options?: CodeblockOptions) {
 	attrs.class = [`language-${lang}`, attrs.class].filter(Boolean).join(' ')
 
 	const copyEventName = options?.copyEventName ? `onclick="{${options?.copyEventName}}"` : ''
@@ -63,7 +63,7 @@ function createContainer(lang: string, attrs: Record<string, any>, options?: Cod
 	return container
 }
 
-function createMermaidContainer(attrs: Record<string, any>) {
+function createMermaidContainer(attrs: Record<string, string>) {
 	const container: Parent = {
 		type: 'container',
 		data: {
@@ -79,11 +79,11 @@ function createMermaidContainer(attrs: Record<string, any>) {
 async function highlightCode(code: string, lang: string) {
 	try {
 		if (!highlighter.getLoadedLanguages().includes(lang)) {
-			await highlighter.loadLanguage(lang as any)
+			await highlighter.loadLanguage(lang as SpecialLanguage)
 		}
 	} catch {
+		console.warn(`\x1b[43m\x1b[30m WARN \x1b[0m\x1b[33m Failed to load language: ${lang}`)
 		lang = 'plaintext'
-		console.error(`Failed to load language '${lang}'`)
 	}
 
 	const hast = highlighter.codeToHast(code, {

@@ -10,7 +10,7 @@ tags:
 
 # Hello, Marp
 
-Make Presentation by Markdown with Marp
+Make Presentation by Markdown with Marp @{ .bg-red-500 }
 
 ---
 
@@ -133,10 +133,6 @@ My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
 - [x] Write the press release
 - [ ] Update the website
 - [ ] Contact the media
-
----
-
-<iframe src="https://elysiajs.com" width="500" height="500"></iframe>
 
 ---
 

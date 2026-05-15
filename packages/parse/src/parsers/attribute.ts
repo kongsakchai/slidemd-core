@@ -4,7 +4,7 @@ import type { Code, Construct, Effects, Extension, State, Token, TokenizeContext
 
 // Attribute extension for micromark; converts token sequences of `@{}` into attribute tokens
 export const attribute = (): Extension => {
-	const createTokenizerLogic = (inline?: boolean): Construct => ({
+	const createTokenizerLogic = (): Construct => ({
 		name: 'html',
 		tokenize: tokenizerAttribute,
 		concrete: true
@@ -12,7 +12,7 @@ export const attribute = (): Extension => {
 
 	return {
 		text: {
-			[codes.atSign]: createTokenizerLogic(true)
+			[codes.atSign]: createTokenizerLogic()
 		}
 	}
 

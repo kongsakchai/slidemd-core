@@ -1,3 +1,5 @@
+import type { Root as HRoot } from 'hast'
+import type { Root as MRoot } from 'mdast'
 import stringify from 'rehype-stringify'
 import remarkGemoji from 'remark-gemoji'
 import remarkGfm from 'remark-gfm'
@@ -12,7 +14,7 @@ export interface Options {
 	transform?: TransformOptions
 }
 
-export type Parser = Processor<any, any, any, any, any>
+export type Parser = Processor<MRoot, MRoot, HRoot, HRoot, string>
 
 export function createParser(options?: Options): Parser {
 	const mdastTransform = unified()

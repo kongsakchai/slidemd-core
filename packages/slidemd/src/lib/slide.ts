@@ -9,9 +9,7 @@ import type { Content, Options, SlideData } from './types.js'
 
 export function extractFrontmatter(markdown: string) {
 	const match = /^---\r?\n([\s\S]*?)---/.exec(markdown)
-	if (!match) {
-		return { body: markdown, metadata: {} }
-	}
+	if (!match) return { body: markdown, metadata: {} }
 
 	// match[1] contains the frontmatter content
 	const metadata = yaml.load(match[1]) as Record<string, any>

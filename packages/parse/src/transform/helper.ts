@@ -8,9 +8,9 @@ import { BuildVisitor, type Test, visit } from 'unist-util-visit'
 // it's end of string or whitespace
 const ATTR_REGEX = /(?<=^|\s)([a-zA-Z][\w-@:]+)(?:="([\s\S]*?)"|='([\s\S]*?)'|=([^\s]+?))?(?=\s|$)/g
 
-export const extractAttributes = (str?: string | null): Record<string, any> => {
+export const extractAttributes = (str?: string | null): Record<string, string | boolean | number> => {
 	if (!str) return {}
-	const attrs: Record<string, any> = {}
+	const attrs: Record<string, string | boolean> = {}
 	for (const match of str.matchAll(ATTR_REGEX)) {
 		const key = match[1]
 		const value = match[2] || match[3] || match[4] || true
@@ -69,12 +69,12 @@ export const getAttributes = (str?: string | null) => {
 	const attrs = extractAttributes(str)
 
 	const ids = extractIDs(str)
-	ids.push(attrs.id)
+	ids.push(attrs.id as string)
 	attrs.id = ids.filter(Boolean).join(' ')
 	if (!attrs.id) delete attrs.id
 
 	const className = extractClassNames(str)
-	className.push(attrs.class)
+	className.push(attrs.class as string)
 	attrs.class = className.filter(Boolean).join(' ')
 	if (!attrs.class) delete attrs.class
 

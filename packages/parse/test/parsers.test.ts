@@ -19,7 +19,7 @@ const setupProcessorTestParser = () => {
 		.use(slidemdParser)
 
 	const hastTransform = mdastTransform.use(remark2Rehype, {
-		handlers: ignoreRender() as any,
+		handlers: ignoreRender(),
 		allowDangerousHtml: true
 		// allowDangerousCharacters: true
 	})
@@ -240,7 +240,7 @@ describe('extended syntax', () => {
 
 	describe('fenced code blocks', () => {
 		it('should return without lang', async () => {
-			let code = '```\nconsole.log("hello, markdown")\n````'
+			const code = '```\nconsole.log("hello, markdown")\n````'
 
 			const processor = setupProcessorTestParser()
 
@@ -249,7 +249,7 @@ describe('extended syntax', () => {
 		})
 
 		it('should return with lang', async () => {
-			let code = '```js\nconsole.log("hello, markdown")\n````'
+			const code = '```js\nconsole.log("hello, markdown")\n````'
 
 			const processor = setupProcessorTestParser()
 
@@ -303,7 +303,7 @@ describe('extended syntax', () => {
 		it('should return highlight', async () => {
 			const processor = setupProcessorTestParser()
 
-			let file = await processor.process(`hello, ==markdown==`)
+			const file = await processor.process(`hello, ==markdown==`)
 			expect(file.value).toEqual('<p>hello, <mark>markdown</mark></p>')
 
 			// file = await processor.process(`hello, ===markdown===`)
@@ -316,7 +316,7 @@ describe('extended syntax', () => {
 		it('should return highlight with other syntax', async () => {
 			const processor = setupProcessorTestParser()
 
-			let file = await processor.process(`hello, ==*markdown*==`)
+			const file = await processor.process(`hello, ==*markdown*==`)
 			expect(file.value).toEqual('<p>hello, <mark><em>markdown</em></mark></p>')
 		})
 
@@ -597,8 +597,8 @@ describe('svelte syntax', () => {
 		it('should return logic with multiple line', async () => {
 			const processor = setupProcessorTestParser()
 
-			const file = await processor.process('Age is: {variable >= 0 \n?\n"\"OLD\""\n:"YOUNG"}')
-			expect(file.value).toEqual('<p>Age is: {variable >= 0 \n?\n"\"OLD\""\n:"YOUNG"}</p>')
+			const file = await processor.process('Age is: {variable >= 0 \n?\n""OLD""\n:"YOUNG"}')
+			expect(file.value).toEqual('<p>Age is: {variable >= 0 \n?\n""OLD""\n:"YOUNG"}</p>')
 		})
 
 		it('should return logic if inline ', async () => {

@@ -3,16 +3,16 @@ import 'mdast-util-to-hast'
 
 declare module 'micromark-util-types' {
 	interface TokenTypeMap {
-		highlightSequenceTemp: {}
-		highlightSequence: {}
-		highlight: {}
-		subscriptSequenceTemp: {}
-		subscriptSequence: {}
-		subscript: {}
-		superscriptSequenceTemp: {}
-		superscriptSequence: {}
-		superscript: {}
-		attribute: {}
+		highlightSequenceTemp: 'highlightSequenceTemp'
+		highlightSequence: 'highlightSequence'
+		highlight: 'highlight'
+		subscriptSequenceTemp: 'subscriptSequenceTemp'
+		subscriptSequence: 'subscriptSequence'
+		subscript: 'subscript'
+		superscriptSequenceTemp: 'superscriptSequenceTemp'
+		superscriptSequence: 'superscriptSequence'
+		superscript: 'superscript'
+		attribute: 'attribute'
 	}
 }
 

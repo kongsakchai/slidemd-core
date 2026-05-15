@@ -6,7 +6,7 @@ export interface Options {
 // Parser
 export interface SlideInfo {
 	slides: Content[]
-	metadata: Record<string, any>
+	metadata: Record<string, string | boolean | number>
 	script: string
 	style: string
 }
@@ -27,7 +27,7 @@ export interface SlideData {
 	title: string
 	pages: PageData[]
 	markdown: string
-	[key: string]: any
+	[key: string]: string | boolean | number | object
 }
 
 export interface PageData {

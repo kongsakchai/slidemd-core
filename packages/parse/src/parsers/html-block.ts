@@ -78,8 +78,8 @@ export const htmlBlock = (): Extension => {
 			let type = 0
 			let escape = false
 
-			let flowType: TokenType = inline ? types.htmlText : types.htmlFlow
-			let dataFlowType: TokenType = inline ? types.htmlTextData : types.htmlFlowData
+			const flowType: TokenType = inline ? types.htmlText : types.htmlFlow
+			const dataFlowType: TokenType = inline ? types.htmlTextData : types.htmlFlowData
 
 			const events = this.events
 
