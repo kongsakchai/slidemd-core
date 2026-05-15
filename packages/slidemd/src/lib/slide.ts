@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createParser } from '@slidemd/parse'
+import { type Directive, createParser } from '@slidemd/parse'
 
 import yaml from 'js-yaml'
 import MagicString from 'magic-string'
@@ -12,7 +12,7 @@ export function extractFrontmatter(markdown: string) {
 	if (!match) return { body: markdown, metadata: {} }
 
 	// match[1] contains the frontmatter content
-	const metadata = yaml.load(match[1]) as Record<string, any>
+	const metadata = yaml.load(match[1]) as Directive
 	// match[0] contains the entire match including the frontmatter
 	const body = markdown.slice(match[0].length)
 
@@ -40,7 +40,7 @@ export function slidemd(options?: Options): PreprocessorGroup {
 			directive.step = 0
 			directive.note = undefined
 
-			const file = await parser.process({ value: page, data: directive })
+			const file = await parser.parse({ value: page, data: directive })
 
 			slides.push({
 				page: i + 1,
@@ -54,9 +54,9 @@ export function slidemd(options?: Options): PreprocessorGroup {
 	}
 
 	const toSvelte = async (markdown: string) => {
-		const { slides, metadata, script, style } = await parse(markdown)
+		const { slides, metadata, script } = await parse(markdown)
 
-		const pageData: SlideData = { ...metadata, title: metadata.title, pages: [], markdown }
+		const pageData: SlideData = { ...metadata, title: metadata.title as string, pages: [], markdown }
 
 		const contents = slides.map((slide) => {
 			pageData.pages.push({ page: slide.page, step: slide.step, note: slide.note })

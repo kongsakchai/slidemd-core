@@ -13,6 +13,7 @@ import type { Transformer } from 'unified'
 import { visit } from 'unist-util-visit'
 
 import { getAttributes, mapNode } from './helper.js'
+import { Attribute } from './types.js'
 
 export interface CodeblockOptions {
 	disableCopy?: boolean
@@ -43,7 +44,7 @@ const escapeSpecialCharacters = (str: string) => {
 	return str.replace(/[&<>{}]/g, (char) => `{'${char}'}`)
 }
 
-function createContainer(lang: string, attrs: Record<string, string>, options?: CodeblockOptions) {
+function createContainer(lang: string, attrs: Attribute, options?: CodeblockOptions) {
 	attrs.class = [`language-${lang}`, attrs.class].filter(Boolean).join(' ')
 
 	const copyEventName = options?.copyEventName ? `onclick="{${options?.copyEventName}}"` : ''
@@ -63,7 +64,7 @@ function createContainer(lang: string, attrs: Record<string, string>, options?: 
 	return container
 }
 
-function createMermaidContainer(attrs: Record<string, string>) {
+function createMermaidContainer(attrs: Attribute) {
 	const container: Parent = {
 		type: 'container',
 		data: {

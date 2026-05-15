@@ -20,7 +20,7 @@ export function transformerAttribute(): Transformer {
 
 			vfile.data.step = isNaN(vfile.data.step as number)
 				? attrs.step
-				: Math.max(attrs.step, vfile.data.step as number)
+				: Math.max(attrs.step as number, vfile.data.step as number)
 		})
 	}
 }

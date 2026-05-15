@@ -1,22 +1,25 @@
-import type { Root as HRoot } from 'hast'
-import type { Root as MRoot } from 'mdast'
 import stringify from 'rehype-stringify'
 import remarkGemoji from 'remark-gemoji'
 import remarkGfm from 'remark-gfm'
 import markdown from 'remark-parse'
 import remark2Rehype from 'remark-rehype'
-import { Processor, unified } from 'unified'
+import { unified } from 'unified'
 
 import { ignoreRender, slidemdParser } from './parsers/index.js'
-import { TransformOptions, applyTransformers } from './transform/index.js'
+import { Attribute, AttributeValue, Directive, TransformOptions, applyTransformers } from './transform/index.js'
 
 export interface Options {
 	transform?: TransformOptions
 }
 
-export type Parser = Processor<MRoot, MRoot, HRoot, HRoot, string>
+export interface File {
+	value: string
+	data: Directive
+}
 
-export function createParser(options?: Options): Parser {
+export type { Attribute, AttributeValue, Directive }
+
+export function createParser(options?: Options) {
 	const mdastTransform = unified()
 		.use(markdown)
 		.use(remarkGemoji)
@@ -34,5 +37,10 @@ export function createParser(options?: Options): Parser {
 		allowDangerousHtml: true
 	})
 
-	return parser
+	return {
+		parse: async (file: File) => {
+			const value = await parser.process({ value: file.value, data: file.data })
+			return value.toString()
+		}
+	}
 }
