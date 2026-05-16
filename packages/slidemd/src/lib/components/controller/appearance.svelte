@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SlideState } from '@lib/utils'
+	import type { SlideState } from '@slidemd/slidemd/state'
 
 	import { onMount } from 'svelte'
 

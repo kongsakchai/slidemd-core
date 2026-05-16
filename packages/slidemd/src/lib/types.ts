@@ -1,3 +1,5 @@
+import type { Directive } from '@slidemd/parse'
+
 // Lib
 export interface Options {
 	extension?: string
@@ -5,14 +7,28 @@ export interface Options {
 
 // Parser
 export interface SlideInfo {
-	slides: Content[]
+	slides: SlideContent[]
 	metadata: Record<string, string | boolean | number>
 	script: string
 	style: string
 }
 
-export interface Content extends PageData {
+export interface SlideContent extends SlidePageData {
 	content: string
+	directive: Directive
+}
+
+export interface SlideDirective {
+	class: string
+	style: string
+	page: string
+	footer: string
+	header: string
+	background: string
+}
+
+export interface SlidePageStore {
+	page: number
 }
 
 // Component
@@ -25,12 +41,11 @@ export interface SlideProps {
 
 export interface SlideData {
 	title: string
-	pages: PageData[]
-	markdown: string
-	[key: string]: string | boolean | number | object
+	pages: SlidePageData[]
+	[key: string]: Directive[string] | SlidePageData[]
 }
 
-export interface PageData {
+export interface SlidePageData {
 	page: number
 	note?: string
 	step: number

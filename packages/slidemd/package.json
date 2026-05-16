@@ -18,17 +18,17 @@
 	"types": "dist/index.d.ts",
 	"exports": {
 		".": {
-			"import": "./dist/index.js",
-			"types": "./dist/index.d.ts"
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
 		},
-		"./utils": {
-			"import": "./dist/utils/index.js",
-			"types": "./dist/utils/index.d.ts"
+		"./shared": {
+			"types": "./dist/shared/index.d.ts",
+			"import": "./dist/shared/index.js"
 		},
 		"./components": {
-			"svelte": "./dist/components/index.js",
+			"types": "./dist/components/index.d.ts",
 			"import": "./dist/components/index.js",
-			"types": "./dist/components/index.d.ts"
+			"svelte": "./dist/components/index.js"
 		},
 		"./themes/*": {
 			"import": "./dist/themes/*",
@@ -51,6 +51,7 @@
 		"@tailwindcss/vite": "^4.2.3",
 		"@tsconfig/svelte": "^5.0.8",
 		"@types/js-yaml": "^4.0.9",
+		"@types/node": "^25.8.0",
 		"publint": "^0.3.18",
 		"svelte": "^5.55.1",
 		"svelte-check": "^4.4.6",

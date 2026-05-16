@@ -16,9 +16,8 @@ export default defineConfig({
 		})
 	],
 	resolve: {
-		tsconfigPaths: true,
 		alias: {
-			'@lib': path.resolve(__dirname, './src/lib')
+			'@slidemd/slidemd': path.resolve(__dirname, './src/lib')
 		}
 	}
 })

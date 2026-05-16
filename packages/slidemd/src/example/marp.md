@@ -1,12 +1,11 @@
 ---
 title: My Custom Marp
 theme: main
+paginate: true
 tags:
     - marp
     - slide
 ---
-
-<!-- backgroundImage: url(https://fakeimg.pl/800x600/02669d/fff/?text=A) -->
 
 # Hello, Marp
 
@@ -94,9 +93,11 @@ My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
 
 ---
 
+<!-- _paginate: hold -->
+
 ## Image
 
-![image bg left](../image/1%20เดือนแรกของผมที่%20Arise%20by%20INFINITAS-1724925027869.jpeg) <!-- .bg-red-500 -->
+![image bg left](../image/1%20เดือนแรกของผมที่%20Arise%20by%20INFINITAS-1724925027869.jpeg) @{.bg-red-500}
 
 ---
 

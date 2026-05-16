@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { SlideState } from '@lib/utils'
+	import { SlideState } from '@slidemd/slidemd/state'
 
 	interface Props {
 		slideState: SlideState

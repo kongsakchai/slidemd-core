@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { SlideState } from '@lib/utils'
+	import { SlideState } from '@slidemd/slidemd/state'
 
 	import Appearance from './controller/appearance.svelte'
 	import Navigator from './controller/navigator.svelte'
@@ -20,7 +20,7 @@
 
 <style lang="postcss">
 	@reference "tailwindcss";
-	@reference "@lib/themes/slidemd.css";
+	@reference "@slidemd/slidemd/themes/slidemd.css";
 
 	.controller :global {
 		.menu {

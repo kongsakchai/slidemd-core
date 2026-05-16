@@ -1,4 +1,4 @@
-import type { SlideData } from '@lib/types.js'
+import type { SlideData } from '@slidemd/slidemd/types.js'
 
 export enum PageAction {
 	NEXT,

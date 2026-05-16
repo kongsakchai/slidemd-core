@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { SlideState, resolvePageSize } from '@lib/utils'
+	import { SlideState } from '@slidemd/slidemd/state'
 
 	import type { Snippet } from 'svelte'
 
@@ -16,6 +16,15 @@
 	let layoutWidth = $state(0)
 	let layoutHeight = $state(0)
 	let slideSize = $derived(resolvePageSize(width, height, layoutWidth, layoutHeight))
+
+	export function resolvePageSize(width: number, height: number, viewWidth: number, viewHeight: number) {
+		const aspect = width / height
+		const tempHeight = viewWidth / aspect
+		const isOverHeight = tempHeight > viewHeight
+		const finalWidth = isOverHeight ? viewHeight * aspect : viewWidth
+
+		return finalWidth / width
+	}
 </script>
 
 <section

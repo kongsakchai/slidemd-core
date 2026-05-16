@@ -10,7 +10,7 @@
 		"checkJs": true,
 		"moduleDetection": "force",
 		"paths": {
-			"@lib/*": ["./src/lib/*"]
+			"@slidemd/slidemd/*": ["./src/lib/*"]
 		}
 	},
 	"include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"]

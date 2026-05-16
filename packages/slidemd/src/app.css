@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import '@lib/themes/slidemd.css';
+@import '@slidemd/slidemd/themes/slidemd.css';
 
 :root {
 	font-synthesis: none;

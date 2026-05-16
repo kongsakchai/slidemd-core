@@ -117,8 +117,9 @@
 
 	/* Container */
 	section.slide {
-		@apply bg-background text-foreground;
+		@apply text-foreground;
 
+		position: relative;
 		font-size: 1em;
 		width: 100%;
 		height: 100%;
@@ -155,6 +156,27 @@
 			left: 0;
 			z-index: -99;
 		}*/
+	}
+
+	section.slide::before {
+		@apply bg-background;
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -2;
+	}
+
+	section.slide > .slide-background {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+	}
+
+	section.slide > .slide-page-number {
+		@apply text-xs;
+		position: absolute;
+		bottom: 1rem;
+		right: 1rem;
 	}
 
 	/*section.slide.split > section.split-contents {
