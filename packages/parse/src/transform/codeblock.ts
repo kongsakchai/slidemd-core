@@ -6,13 +6,13 @@ import {
 } from '@shikijs/transformers'
 
 import type { Element, ElementContent } from 'hast'
-import type { Parent, Root, RootContent } from 'mdast'
+import type { Data, Parent, Root, RootContent } from 'mdast'
 import { SpecialLanguage, createHighlighter } from 'shiki'
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
 import type { Transformer } from 'unified'
 import { visit } from 'unist-util-visit'
 
-import { getAttributes, mapNode } from './helper.js'
+import { getAttributes, mapNode, maxValue } from './helper.js'
 import { Attribute } from './types.js'
 
 export interface CodeblockOptions {
@@ -56,7 +56,7 @@ function createContainer(lang: string, attrs: Attribute, options?: CodeblockOpti
 		type: 'container',
 		data: {
 			hName: 'div',
-			hProperties: attrs,
+			hProperties: attrs as Data['hProperties'],
 			hChildren: [...copyButton, { type: 'raw', value: `<span class="lang">${lang}</span>` }]
 		},
 		children: []
@@ -69,7 +69,7 @@ function createMermaidContainer(attrs: Attribute) {
 		type: 'container',
 		data: {
 			hName: 'div',
-			hProperties: attrs,
+			hProperties: attrs as Data['hProperties'],
 			hChildren: []
 		},
 		children: []
@@ -114,13 +114,15 @@ async function mermaidBlock(code: string) {
 }
 
 export function transformerCodeblock(options?: CodeblockOptions): Transformer {
-	return async (tree) => {
+	return async (tree, vfile) => {
 		const codeblocks = mapNode(tree as Root, 'code', (node, index, parent) => {
 			if (typeof index !== 'number' || !parent) return
 
 			const lang = node.lang || 'plaintext'
 			const code = node.value
 			const attrs = getAttributes(node.meta)
+
+			vfile.data.step = maxValue(vfile.data.step, attrs.step)
 
 			const container = lang === 'mermaid' ? createMermaidContainer(attrs) : createContainer(lang, attrs, options)
 			parent.children.splice(index, 1, container as RootContent)

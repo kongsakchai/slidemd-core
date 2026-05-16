@@ -27,14 +27,13 @@ describe('transform helper', () => {
 			key2: 'value with spaces',
 			key3: 'another value',
 			key4: true,
-			key5: 'value5',
-			step: 0
+			key5: 'value5'
 		})
 	})
 
 	it('should return empty object for undefined or null input', () => {
-		expect(extractAttributes()).toEqual({ step: 0 })
-		expect(extractAttributes(null)).toEqual({ step: 0 })
+		expect(extractAttributes()).toEqual({})
+		expect(extractAttributes(null)).toEqual({})
 	})
 
 	it('should return class names correctly', () => {
@@ -108,8 +107,7 @@ describe('transform helper', () => {
 	it('should return attributes without class, id and step', () => {
 		const resp = getAttributes('data=10 step=0')
 		expect(resp).toEqual({
-			data: '10',
-			step: 0
+			data: '10'
 		})
 	})
 })
@@ -128,8 +126,9 @@ describe('transformer codeblock', () => {
 			]
 		}
 
+		const vfile = new VFile()
 		const transformer = transformerCodeblock()
-		await transformer(tree, null as never, null as never)
+		await transformer(tree, vfile, null as never)
 
 		const container = tree.children[0] as never as Parent
 
@@ -152,8 +151,9 @@ describe('transformer codeblock', () => {
 			]
 		}
 
+		const vfile = new VFile()
 		const transformer = transformerCodeblock()
-		await transformer(tree, null as any, null as any)
+		await transformer(tree, vfile, null as any)
 
 		const container = tree.children[0] as any as Parent
 
@@ -177,8 +177,9 @@ describe('transformer codeblock', () => {
 			]
 		}
 
+		const vfile = new VFile()
 		const transformer = transformerCodeblock()
-		await transformer(tree, null as any, null as any)
+		await transformer(tree, vfile, null as any)
 
 		const container = tree.children[0] as any as Parent
 
@@ -197,8 +198,9 @@ describe('transformer codeblock', () => {
 			meta: 'key=value .class1 #id1'
 		}
 
+		const vfile = new VFile()
 		const transformer = transformerCodeblock()
-		await transformer(tree, null as any, null as any)
+		await transformer(tree, vfile, null as any)
 
 		expect(tree).toEqual({
 			type: 'code',
@@ -220,8 +222,9 @@ describe('transformer codeblock', () => {
 			]
 		}
 
+		const vfile = new VFile()
 		const transformer = transformerCodeblock()
-		await transformer(tree, null as any, null as any)
+		await transformer(tree, vfile, null as any)
 
 		expect(tree.children.length).toBe(1)
 		expect(tree.children[0].type).toBe('container')
@@ -240,8 +243,9 @@ describe('transformer codeblock', () => {
 			]
 		}
 
+		const vfile = new VFile()
 		const transformer = transformerCodeblock({ copyEventName: 'onClick' })
-		await transformer(tree, null as any, null as any)
+		await transformer(tree, vfile, null as any)
 
 		const container = tree.children[0] as any as Parent
 
@@ -265,8 +269,9 @@ describe('transformer codeblock', () => {
 			]
 		}
 
+		const vfile = new VFile()
 		const transformer = transformerCodeblock({ copyEventName: 'onClick', disableCopy: true })
-		await transformer(tree, null as any, null as any)
+		await transformer(tree, vfile, null as any)
 
 		const container = tree.children[0] as any as Parent
 
@@ -398,8 +403,8 @@ describe('extract script', () => {
 		transformer(tree, vfile, null as any)
 
 		expect(tree.children.length).toEqual(1)
-		expect(vfile.data.script).toEqual('console.log("Hello")')
-		expect(vfile.data.style).toEqual('.hello{ background: red; }')
+		expect(vfile.data.scriptTag).toEqual('console.log("Hello")')
+		expect(vfile.data.styleTag).toEqual('.hello{ background: red; }')
 	})
 
 	it('should return without parent', () => {
@@ -445,7 +450,7 @@ background-color: "#e5e5f7"
 		const transformer = transformerDirective()
 		transformer(tree, vfile, null as any)
 
-		expect(tree.children.length).toEqual(2)
+		expect(tree.children.length).toEqual(1)
 		expect(vfile.data).toEqual({
 			'background-color': '#e5e5f7',
 			opacity: 0.8,
@@ -481,7 +486,7 @@ transition:in: fade
 		const transformer = transformerDirective()
 		transformer(tree, vfile, null as any)
 
-		expect(tree.children.length).toEqual(2)
+		expect(tree.children.length).toEqual(1)
 		expect(vfile.data).toEqual({
 			'background-color': 'red',
 			'background-image': 'img',

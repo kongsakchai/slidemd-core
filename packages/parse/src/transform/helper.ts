@@ -11,8 +11,8 @@ import { Attribute } from './types'
 const ATTR_REGEX = /(?<=^|\s)([a-zA-Z][\w-@:]+)(?:="([\s\S]*?)"|='([\s\S]*?)'|=([^\s]+?))?(?=\s|$)/g
 
 export const extractAttributes = (str?: string | null): Attribute => {
-	if (!str) return { step: 0 }
-	const attrs: Attribute = { step: 0 }
+	if (!str) return {}
+	const attrs: Attribute = {}
 	for (const match of str.matchAll(ATTR_REGEX)) {
 		const key = match[1]
 		const value = match[2] || match[3] || match[4] || true
@@ -41,6 +41,21 @@ const ID_REGEX = /(?<=^|\s)#([^\s]+)(?=\s|$)/g
 export const extractIDs = (str?: string | null) => {
 	if (!str) return []
 	return Array.from(str.matchAll(ID_REGEX), (m) => m[1])
+}
+
+// step extractor, used for parsing step key in string
+// it's start of string of whitespace
+// followed by key, which can be number characters, and must start with a `step-`
+// it's end of string, equals or whitespace
+const STEP_REGEX = /(?<=^|\s)step-(\d+)(?==|\s|$)/g
+
+export const extractMaxStep = (str?: string | null) => {
+	if (!str) return 0
+	let step = 0
+	for (const match of str.matchAll(STEP_REGEX)) {
+		step = Math.max(parseInt(match[1]), step)
+	}
+	return step
 }
 
 export const mapNode = <Tree extends Node, Check extends Test, T>(
@@ -80,7 +95,28 @@ export const getAttributes = (str?: string | null) => {
 	attrs.class = className.filter(Boolean).join(' ')
 	if (!attrs.class) delete attrs.class
 
-	attrs.step = Object.keys(attrs).reduce(getStepMax, 0)
+	attrs.step = extractMaxStep(str)
+	if (!attrs.step) delete attrs.step
 
 	return attrs
+}
+
+export function asString(v: unknown, defaultVal: string): string
+export function asString(v: unknown, defaultVal?: undefined): string | undefined
+export function asString(v: unknown, defaultVal?: string): string | undefined {
+	return typeof v === 'string' ? v : defaultVal
+}
+
+export function asNumber(v: unknown, defaultVal: number): number
+export function asNumber(v: unknown, defaultVal?: undefined): number | undefined
+export function asNumber(v: unknown, defaultVal?: number): number | undefined {
+	return typeof v === 'number' ? v : defaultVal
+}
+
+export const maxValue = (a: unknown, b: unknown) => {
+	if (!a && !b) return undefined
+	if (!a) return asNumber(b)
+	if (!b) return asNumber(a)
+
+	return Math.max(asNumber(a, 0), asNumber(b, 0))
 }
