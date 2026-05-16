@@ -38,9 +38,12 @@ export function createParser(options?: Options) {
 	})
 
 	return {
-		parse: async (file: File) => {
-			const value = await parser.process({ value: file.value, data: file.data })
-			return value.toString()
+		parse: async (value: string, data: Directive): Promise<File> => {
+			const file = await parser.process({ value: value, data: data })
+			return {
+				value: file.toString(),
+				data: file.data as Directive
+			}
 		}
 	}
 }

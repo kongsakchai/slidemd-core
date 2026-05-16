@@ -27,13 +27,14 @@ describe('transform helper', () => {
 			key2: 'value with spaces',
 			key3: 'another value',
 			key4: true,
-			key5: 'value5'
+			key5: 'value5',
+			step: 0
 		})
 	})
 
 	it('should return empty object for undefined or null input', () => {
-		expect(extractAttributes()).toEqual({})
-		expect(extractAttributes(null)).toEqual({})
+		expect(extractAttributes()).toEqual({ step: 0 })
+		expect(extractAttributes(null)).toEqual({ step: 0 })
 	})
 
 	it('should return class names correctly', () => {
@@ -107,7 +108,8 @@ describe('transform helper', () => {
 	it('should return attributes without class, id and step', () => {
 		const resp = getAttributes('data=10 step=0')
 		expect(resp).toEqual({
-			data: '10'
+			data: '10',
+			step: 0
 		})
 	})
 })
@@ -422,7 +424,12 @@ describe('transform directive', () => {
 			children: [
 				{
 					type: 'html',
-					value: '<!-- background-color: red -->'
+					value: `<!--
+background-color: "#e5e5f7"
+"opacity": 0.8
+"background-image": "radial-gradient(#444cf7 0.5px, #e5e5f7 0.5px)"
+"background-size": 10px 10px
+-->`
 				},
 				{
 					type: 'html',
@@ -440,7 +447,10 @@ describe('transform directive', () => {
 
 		expect(tree.children.length).toEqual(2)
 		expect(vfile.data).toEqual({
-			'background-color': 'red'
+			'background-color': '#e5e5f7',
+			opacity: 0.8,
+			'background-image': 'radial-gradient(#444cf7 0.5px, #e5e5f7 0.5px)',
+			'background-size': '10px 10px'
 		})
 	})
 
@@ -453,7 +463,7 @@ describe('transform directive', () => {
 					value: `<!--
 background-color: red
 background-image: img
-"transition:in": fade
+transition:in: fade
 "use:clickoutside": "{data.value}"
 -->`
 				},

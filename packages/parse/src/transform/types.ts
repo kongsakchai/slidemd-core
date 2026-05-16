@@ -1,5 +1,8 @@
-export type AttributeValue = string | number | boolean | (string | number)[] | null | undefined
+export type AttributeValue = string | number | boolean | null | undefined | (string | number | boolean)[]
 
-export type Attribute = Record<string, AttributeValue>
+export type Attribute = {
+	step: number
+	[key: string]: AttributeValue
+}
 
-export type Directive = Record<string, Attribute | AttributeValue>
+export type Directive = Record<string, Attribute | AttributeValue | Directive[]>

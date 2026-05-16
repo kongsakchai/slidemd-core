@@ -1,4 +1,4 @@
-import { Root } from 'mdast'
+import { Data, Root } from 'mdast'
 import type { Transformer } from 'unified'
 import { visit } from 'unist-util-visit'
 
@@ -14,13 +14,12 @@ export function transformerAttribute(): Transformer {
 			parent.data = { ...parent.data }
 			parent.data.hProperties = {
 				...parent.data.hProperties,
-				...attrs
+				...(attrs as Data['hProperties'])
 			}
 			parent.children.pop()
 
-			vfile.data.step = isNaN(vfile.data.step as number)
-				? attrs.step
-				: Math.max(attrs.step as number, vfile.data.step as number)
+			const step = attrs.step ?? 0
+			vfile.data.step = typeof vfile.data.step === 'number' ? Math.max(step, vfile.data.step) : step
 		})
 	}
 }

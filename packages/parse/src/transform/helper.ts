@@ -11,8 +11,8 @@ import { Attribute } from './types'
 const ATTR_REGEX = /(?<=^|\s)([a-zA-Z][\w-@:]+)(?:="([\s\S]*?)"|='([\s\S]*?)'|=([^\s]+?))?(?=\s|$)/g
 
 export const extractAttributes = (str?: string | null): Attribute => {
-	if (!str) return {}
-	const attrs: Attribute = {}
+	if (!str) return { step: 0 }
+	const attrs: Attribute = { step: 0 }
 	for (const match of str.matchAll(ATTR_REGEX)) {
 		const key = match[1]
 		const value = match[2] || match[3] || match[4] || true
@@ -71,17 +71,16 @@ export const getAttributes = (str?: string | null) => {
 	const attrs = extractAttributes(str)
 
 	const ids = extractIDs(str)
-	ids.push(attrs.id as string)
+	if (typeof attrs.id === 'string') ids.push(attrs.id)
 	attrs.id = ids.filter(Boolean).join(' ')
 	if (!attrs.id) delete attrs.id
 
 	const className = extractClassNames(str)
-	className.push(attrs.class as string)
+	if (typeof attrs.class === 'string') className.push(attrs.class)
 	attrs.class = className.filter(Boolean).join(' ')
 	if (!attrs.class) delete attrs.class
 
 	attrs.step = Object.keys(attrs).reduce(getStepMax, 0)
-	if (!attrs.step) delete attrs.step
 
 	return attrs
 }

@@ -22,14 +22,15 @@
 	"description": "",
 	"dependencies": {
 		"@shikijs/transformers": "^4.0.2",
-		"shiki": "^4.0.2",
+		"js-yaml": "^4.1.1",
 		"rehype-stringify": "^10.0.1",
 		"remark-gemoji": "^8.0.0",
 		"remark-gfm": "^4.0.1",
 		"remark-parse": "^11.0.0",
 		"remark-rehype": "^11.1.2",
+		"shiki": "^4.0.2",
 		"unified": "^11.0.5",
 		"unist-util-visit": "^5.1.0",
-		"js-yaml": "^4.1.1"
+		"yaml": "^2.9.0"
 	}
 }

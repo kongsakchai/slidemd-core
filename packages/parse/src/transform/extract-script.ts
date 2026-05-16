@@ -14,10 +14,10 @@ export function transformerExteactScript(): Transformer {
 
 			switch (match[1].toLowerCase()) {
 				case 'script':
-					vfile.data.script = match[2]
+					vfile.data.scriptTag = match[2]
 					break
 				case 'style':
-					vfile.data.style = match[2]
+					vfile.data.styleTag = match[2]
 					break
 			}
 
