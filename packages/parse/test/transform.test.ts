@@ -8,13 +8,15 @@ import { transformerCodeblock } from '../src/transform/codeblock'
 import { transformerDirective } from '../src/transform/directive'
 import { transformerExteactScript } from '../src/transform/extract-script'
 import {
+	asNumber,
+	asString,
 	extractAttributes,
 	extractClassNames,
 	extractIDs,
-	fallbackParseInt,
+	extractMaxStep,
 	getAttributes,
-	getStepMax,
-	mapNode
+	mapNode,
+	maxValue
 } from '../src/transform/helper'
 
 describe('transform helper', () => {
@@ -74,26 +76,6 @@ describe('transform helper', () => {
 		expect(result).toEqual(['code'])
 	})
 
-	it('should return number when string correctly', () => {
-		const result = fallbackParseInt('10', 5)
-		expect(result).toEqual(10)
-	})
-
-	it('should return fallback when string incorrect', () => {
-		const result = fallbackParseInt('aaa', 5)
-		expect(result).toEqual(5)
-	})
-
-	it('should return new step when step format correctly', () => {
-		const resp = getStepMax(10, 'step-100')
-		expect(resp).toEqual(100)
-	})
-
-	it('should return current when step format incorrect', () => {
-		const resp = getStepMax(10, 'step-aaa')
-		expect(resp).toEqual(10)
-	})
-
 	it('should return attributes', () => {
 		const resp = getAttributes("#id-1 .class-1 .class-2 class='class-3 class-4' step-2='bg'")
 		expect(resp).toEqual({
@@ -109,6 +91,61 @@ describe('transform helper', () => {
 		expect(resp).toEqual({
 			data: '10'
 		})
+	})
+
+	it('should return string when value is string', () => {
+		const val: string | undefined = 'test'
+		const resp = asString(val)
+		expect(resp).toEqual('test')
+	})
+
+	it('should return default value when value is not string', () => {
+		const val: string | undefined = undefined
+		const resp = asString(val, 'test')
+		expect(resp).toEqual('test')
+	})
+
+	it('should return number when value is number', () => {
+		const val: number | undefined = 10
+		const resp = asNumber(val)
+		expect(resp).toEqual(10)
+	})
+
+	it('should return default value when value is not number', () => {
+		const val: string | undefined = undefined
+		const resp = asNumber(val, 0)
+		expect(resp).toEqual(0)
+	})
+
+	it('should return a when b is empty', () => {
+		const a = 10
+		const b = undefined
+		const resp = maxValue(a, b)
+		expect(resp).toEqual(10)
+	})
+
+	it('should return b when a is empty', () => {
+		const a = undefined
+		const b = 10
+		const resp = maxValue(a, b)
+		expect(resp).toEqual(10)
+	})
+
+	it('should return undefined when a and b is empty', () => {
+		const a = undefined
+		const b = undefined
+		const resp = maxValue(a, b)
+		expect(resp).toBeUndefined()
+	})
+
+	it('should return 10 when max step is 10', () => {
+		const str = 'step-5 step-10'
+		expect(extractMaxStep(str)).toBe(10)
+	})
+
+	it('should return 0 when string empty', () => {
+		const str = ''
+		expect(extractMaxStep(str)).toBe(0)
 	})
 })
 

@@ -70,28 +70,16 @@ export const mapNode = <Tree extends Node, Check extends Test, T>(
 	return results
 }
 
-export const fallbackParseInt = (str: string, fallback: number) => {
-	const resp = parseInt(str)
-	return isNaN(resp) ? fallback : resp
-}
-
-export const getStepMax = (cur: number, step: string) => {
-	if (step.startsWith('step-')) {
-		return Math.max(fallbackParseInt(step.slice(5), cur), cur)
-	}
-	return cur
-}
-
 export const getAttributes = (str?: string | null) => {
 	const attrs = extractAttributes(str)
 
 	const ids = extractIDs(str)
-	if (typeof attrs.id === 'string') ids.push(attrs.id)
+	ids.push(asString(attrs.id, ''))
 	attrs.id = ids.filter(Boolean).join(' ')
 	if (!attrs.id) delete attrs.id
 
 	const className = extractClassNames(str)
-	if (typeof attrs.class === 'string') className.push(attrs.class)
+	className.push(asString(attrs.class, ''))
 	attrs.class = className.filter(Boolean).join(' ')
 	if (!attrs.class) delete attrs.class
 
